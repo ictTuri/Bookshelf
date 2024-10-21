@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: "Bookshelf"
+  jpa:
+    database: POSTGRESQL
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+  datasource:
+    platform: postgres
+    url: jdbc:postgresql://localhost:5432/bookshelf
+    username: postgres
+    password: postgres
+    driverClassName: org.postgresql.Driver
+  security:
+    oauth2:
+      resourceserver:
+        opaque-token:
+          introspection-uri: https://www.googleapis.com
+          clientId: "6849787957-l9rd48diu3rj4517gtgo6fm7053gsi6p.apps.googleusercontent.com"
+          clientSecret: "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"
