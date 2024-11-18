@@ -1,0 +1,32 @@
+services:
+# POSTGRES
+  postgres:
+    container_name: postgres-sql-bsh
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data
+      POSTGRES_DB: bookshelf
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - 5433:5432
+    networks:
+      - spring-bookshelf
+    restart: unless-stopped
+# MAIL
+  mail-dev:
+    container_name: mail-bsh
+    image: maildev/maildev
+    ports:
+      - 1080:1080
+      - 1025:1025
+
+networks:
+  spring-bookshelf:
+    driver: bridge
+
+volumes:
+  postgres:
+    driver: local
