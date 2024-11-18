@@ -1,5 +1,6 @@
 package com.arturmolla.bookshelf.config;
 
+import com.arturmolla.bookshelf.config.exceptions.OperationNotPermittedException;
 import com.arturmolla.bookshelf.model.dto.ExceptionResponse;
 import com.arturmolla.bookshelf.model.enums.BusinessErrorCodes;
 import jakarta.mail.MessagingException;
@@ -74,6 +75,18 @@ public class ConfigGlobalExceptionHandler {
                                 .businessErrorCode(BusinessErrorCodes.BAD_CREDENTIALS.getCode())
                                 .businessErrorDescription(BusinessErrorCodes.BAD_CREDENTIALS.getDescription())
                                 .error(BusinessErrorCodes.BAD_CREDENTIALS.getDescription())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(OperationNotPermittedException.class)
+    public ResponseEntity<ExceptionResponse> handleException(OperationNotPermittedException exp) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ExceptionResponse
+                                .builder()
+                                .error(exp.getMessage())
                                 .build()
                 );
     }
