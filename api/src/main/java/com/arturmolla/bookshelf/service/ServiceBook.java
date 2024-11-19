@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Objects;
@@ -33,10 +34,11 @@ public class ServiceBook {
     public static final String BOOK_NOT_FOUND = "Book was not found with id: ";
     private final RepositoryBook repositoryBook;
     private final RepositoryBookTransactionHistory repositoryBookTransactionHistory;
+    private final ServiceFileStorage serviceFileStorage;
     private final MapperBook mapperBook;
 
     public Long saveBook(DtoBookRequest request, Authentication connectedUser) {
-        User user = (User) connectedUser.getPrincipal();
+        var user = (User) connectedUser.getPrincipal();
         EntityBook book = mapperBook.toEntityBook(request);
         book.setOwner(user);
         return repositoryBook.save(book).getId();
@@ -49,21 +51,21 @@ public class ServiceBook {
     }
 
     public PageResponse<DtoBookResponse> getAllBooksPaged(int page, int size, Authentication connectedUser) {
-        User user = (User) connectedUser.getPrincipal();
+        var user = (User) connectedUser.getPrincipal();
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
         Page<EntityBook> books = repositoryBook.findAllDisplayableBooks(pageable, user.getId());
         return mapPageToCustomWrapper(books);
     }
 
     public PageResponse<DtoBookResponse> getAllBooksByOwner(int page, int size, Authentication connectedUser) {
-        User user = (User) connectedUser.getPrincipal();
+        var user = (User) connectedUser.getPrincipal();
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
         Page<EntityBook> books = repositoryBook.findAll(SpecificationBook.withOwnerId(user.getId()), pageable);
         return mapPageToCustomWrapper(books);
     }
 
     public PageResponse<DtoBorrowedBooksResponse> getAllBorrowedBooks(int page, int size, Authentication connectedUser) {
-        User user = (User) connectedUser.getPrincipal();
+        var user = (User) connectedUser.getPrincipal();
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
         Page<EntityBookTransactionHistory> allBorrowedBooks = repositoryBookTransactionHistory.findAllBorrowedBooks(
                 pageable, user.getId()
@@ -72,7 +74,7 @@ public class ServiceBook {
     }
 
     public PageResponse<DtoBorrowedBooksResponse> getAllReturnedBooks(int page, int size, Authentication connectedUser) {
-        User user = (User) connectedUser.getPrincipal();
+        var user = (User) connectedUser.getPrincipal();
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
         Page<EntityBookTransactionHistory> allBorrowedBooks = repositoryBookTransactionHistory.findAllReturnedBooks(
                 pageable, user.getId()
@@ -83,13 +85,95 @@ public class ServiceBook {
     public Long updateShareableStatus(Long bookId, Authentication connectedUser) {
         var book = repositoryBook.findById(bookId)
                 .orElseThrow(() -> new EntityNotFoundException(BOOK_NOT_FOUND + bookId));
-        User user = (User) connectedUser.getPrincipal();
+        var user = (User) connectedUser.getPrincipal();
         if (!Objects.equals(book.getOwner().getId(), user.getId())) {
             throw new OperationNotPermittedException("You can not perform this action!");
         }
         book.setShareable(!book.getShareable());
         repositoryBook.save(book);
         return book.getId();
+    }
+
+    public Long updateArchiveStatus(Long bookId, Authentication connectedUser) {
+        var book = repositoryBook.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException(BOOK_NOT_FOUND + bookId));
+        var user = (User) connectedUser.getPrincipal();
+        if (!Objects.equals(book.getOwner().getId(), user.getId())) {
+            throw new OperationNotPermittedException("You can not perform this action!");
+        }
+        book.setArchived(!book.getArchived());
+        repositoryBook.save(book);
+        return book.getId();
+    }
+
+    public Long borrowBook(Long bookId, Authentication connectedUser) {
+        var book = repositoryBook.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException(BOOK_NOT_FOUND + bookId));
+        if (book.getArchived() || !book.getShareable()) {
+            throw new OperationNotPermittedException("The requested book can not be borrowed (archived/nonchargeable)");
+        }
+        var user = (User) connectedUser.getPrincipal();
+        if (!Objects.equals(book.getOwner().getId(), user.getId())) {
+            throw new OperationNotPermittedException("You own this book!");
+        }
+        final boolean isAlreadyBorrowed = repositoryBookTransactionHistory.isAlreadyBorrowedByUser(bookId, user.getId());
+        if (isAlreadyBorrowed) {
+            throw new OperationNotPermittedException("The requested book is already borrowed");
+        }
+        EntityBookTransactionHistory bookTransactionHistory = EntityBookTransactionHistory.builder()
+                .user(user)
+                .book(book)
+                .returned(false)
+                .returnApproved(false)
+                .build();
+        return repositoryBookTransactionHistory.save(bookTransactionHistory).getId();
+    }
+
+    public Long returnBorrowedBook(Long bookId, Authentication connectedUser) {
+        var book = repositoryBook.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException(BOOK_NOT_FOUND + bookId));
+        if (book.getArchived() || !book.getShareable()) {
+            throw new OperationNotPermittedException("The requested book can not be borrowed (archived/nonchargeable)");
+        }
+        var user = (User) connectedUser.getPrincipal();
+        if (!Objects.equals(book.getOwner().getId(), user.getId())) {
+            throw new OperationNotPermittedException("You own this book!");
+        }
+        EntityBookTransactionHistory bookTransactionHistory = repositoryBookTransactionHistory.findByBookIdAndUserId(
+                bookId,
+                user.getId()
+        ).orElseThrow(() -> new OperationNotPermittedException("You did not borrow this book!"));
+        bookTransactionHistory.setReturned(true);
+        return repositoryBookTransactionHistory.save(bookTransactionHistory).getId();
+    }
+
+
+    public Long approveReturnBorrowedBook(Long bookId, Authentication connectedUser) {
+        var book = repositoryBook.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException(BOOK_NOT_FOUND + bookId));
+        if (book.getArchived() || !book.getShareable()) {
+            throw new OperationNotPermittedException("The requested book can not be borrowed (archived/nonchargeable)");
+        }
+        var user = (User) connectedUser.getPrincipal();
+        if (!Objects.equals(book.getOwner().getId(), user.getId())) {
+            throw new OperationNotPermittedException("You own this book!");
+        }
+        EntityBookTransactionHistory bookTransactionHistory = repositoryBookTransactionHistory.findByBookIdAndOwnerId(
+                bookId,
+                user.getId()
+        ).orElseThrow(() -> new OperationNotPermittedException("Book is not returned yet!"));
+        bookTransactionHistory.setReturnApproved(true);
+        return repositoryBookTransactionHistory.save(bookTransactionHistory).getId();
+    }
+
+
+    public void uploadBookCoverImage(MultipartFile file, Authentication connectedUser, Long bookId) {
+        var book = repositoryBook.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException(BOOK_NOT_FOUND + bookId));
+        var user = (User) connectedUser.getPrincipal();
+        var bookCover = serviceFileStorage.saveFile(file, bookId, user.getId());
+        book.setBookCover(bookCover);
+        repositoryBook.save(book);
     }
 
     // HELPER METHODS

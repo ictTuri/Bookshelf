@@ -5,6 +5,7 @@ import com.arturmolla.bookshelf.model.dto.DtoBookRequest;
 import com.arturmolla.bookshelf.model.dto.DtoBookResponse;
 import com.arturmolla.bookshelf.model.dto.DtoBorrowedBooksResponse;
 import com.arturmolla.bookshelf.service.ServiceBook;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -81,5 +84,48 @@ public class ControllerBook {
             Authentication connectedUser
     ) {
         return ResponseEntity.ok(serviceBook.updateShareableStatus(bookId, connectedUser));
+    }
+
+    @PatchMapping("/archive/{book-id}")
+    public ResponseEntity<Long> updateArchiveStatus(
+            @PathVariable("book-id") Long bookId,
+            Authentication connectedUser
+    ) {
+        return ResponseEntity.ok(serviceBook.updateArchiveStatus(bookId, connectedUser));
+    }
+
+    @PostMapping("/borrow/{book-id}")
+    public ResponseEntity<Long> borrowBook(
+            @PathVariable("book-id") Long bookId,
+            Authentication connectedUser
+    ) {
+        return ResponseEntity.ok(serviceBook.borrowBook(bookId, connectedUser));
+    }
+
+    @PatchMapping("/borrow/return/{book-id}")
+    public ResponseEntity<Long> returnBorrowedBook(
+            @PathVariable("book-id") Long bookId,
+            Authentication connectedUser
+    ) {
+        return ResponseEntity.ok(serviceBook.returnBorrowedBook(bookId, connectedUser));
+    }
+
+    @PatchMapping("/borrow/return/approve/{book-id}")
+    public ResponseEntity<Long> approveReturnBorrowedBook(
+            @PathVariable("book-id") Long bookId,
+            Authentication connectedUser
+    ) {
+        return ResponseEntity.ok(serviceBook.approveReturnBorrowedBook(bookId, connectedUser));
+    }
+
+    @PostMapping(value = "/cover/{book-id}", consumes = "multipart/form-data")
+    public ResponseEntity<?> uploadBookCoverImage(
+            @PathVariable("book-id") Long bookId,
+            @Parameter()
+            @RequestPart("file") MultipartFile file,
+            Authentication connectedUser
+    ) {
+        serviceBook.uploadBookCoverImage(file, connectedUser, bookId);
+        return ResponseEntity.accepted().build();
     }
 }
