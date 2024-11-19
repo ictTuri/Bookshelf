@@ -171,7 +171,7 @@ public class ServiceBook {
         var book = repositoryBook.findById(bookId)
                 .orElseThrow(() -> new EntityNotFoundException(BOOK_NOT_FOUND + bookId));
         var user = (User) connectedUser.getPrincipal();
-        var bookCover = serviceFileStorage.saveFile(file, bookId, user.getId());
+        var bookCover = serviceFileStorage.saveFile(file, user.getId());
         book.setBookCover(bookCover);
         repositoryBook.save(book);
     }

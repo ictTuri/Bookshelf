@@ -5,9 +5,8 @@ import com.arturmolla.bookshelf.model.dto.DtoBookResponse;
 import com.arturmolla.bookshelf.model.dto.DtoBorrowedBooksResponse;
 import com.arturmolla.bookshelf.model.entity.EntityBook;
 import com.arturmolla.bookshelf.model.entity.EntityBookTransactionHistory;
+import com.arturmolla.bookshelf.service.utils.UtilsFile;
 import org.springframework.stereotype.Service;
-
-import java.nio.charset.StandardCharsets;
 
 @Service
 public class MapperBook {
@@ -40,7 +39,7 @@ public class MapperBook {
                 .shareable(entity.getShareable())
                 .read(entity.getRead())
                 .owner(entity.getOwner().getFullName())
-                .cover(entity.getBookCover().getBytes(StandardCharsets.UTF_8))
+                .cover(UtilsFile.readFileFromLocation(entity.getBookCover()))
                 .build();
     }
 
