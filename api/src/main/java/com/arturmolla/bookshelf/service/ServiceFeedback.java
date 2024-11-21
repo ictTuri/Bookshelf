@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -44,6 +45,17 @@ public class ServiceFeedback {
     public PageResponse<DtoFeedbackResponse> findFeedbacksForBook(Long bookId, int page, int size, Authentication connectedUser) {
         Pageable pageable = PageRequest.of(page, size);
         var user = (User) connectedUser.getPrincipal();
-        Page<EntityFeedback> feedbacks = repositoryFeedback.findAllByBookId()
+        Page<EntityFeedback> feedbacks = repositoryFeedback.findAllByBookId(bookId, pageable);
+        List<DtoFeedbackResponse> feedbackResponses = feedbacks.stream()
+                .map(f -> mapperFeedback.toDtoFeedbackResponse(f, user.getId()))
+                .toList();
+        return new PageResponse<>(
+                feedbackResponses,
+                feedbacks.getNumber(),
+                feedbacks.getSize(),
+                feedbacks.getTotalElements(),
+                feedbacks.getTotalPages(),
+                feedbacks.isFirst(),
+                feedbacks.isLast());
     }
 }

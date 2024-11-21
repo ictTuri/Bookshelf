@@ -2,6 +2,7 @@ package com.arturmolla.bookshelf.controller;
 
 import com.arturmolla.bookshelf.model.common.PageResponse;
 import com.arturmolla.bookshelf.model.dto.DtoFeedbackRequest;
+import com.arturmolla.bookshelf.model.dto.DtoFeedbackResponse;
 import com.arturmolla.bookshelf.service.ServiceFeedback;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

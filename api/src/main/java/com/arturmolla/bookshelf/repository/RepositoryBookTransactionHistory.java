@@ -48,5 +48,5 @@ public interface RepositoryBookTransactionHistory extends JpaRepository<EntityBo
             AND history.book.id = :bookId
             AND history.returned = true
             AND history.returnApproved = false""")
-    Optional<EntityBookTransactionHistory> findByBookIdAndOwnerId(Long bookId, Long id);
+    Optional<EntityBookTransactionHistory> findByBookIdAndOwnerId(Long bookId, Long userId);
 }
