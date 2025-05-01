@@ -11,6 +11,7 @@ import java.util.Optional;
 
 @Component
 public class ConfigAuditorAware implements AuditorAware<Long> {
+
     @Override
     public Optional<Long> getCurrentAuditor() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
