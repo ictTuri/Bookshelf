@@ -1,0 +1,12 @@
+<div class="confirm-container">
+  <h2>Confirm Your Account</h2>
+  <p>Email: {{ email }}</p>
+  <form [formGroup]="confirmForm" (ngSubmit)="onSubmit()">
+    <mat-form-field>
+      <mat-label>6-digit Code</mat-label>
+      <input matInput formControlName="code" maxlength="6" />
+      <mat-error *ngIf="confirmForm.get('code')?.invalid">Enter a valid 6-digit code</mat-error>
+    </mat-form-field>
+    <button mat-raised-button color="primary" type="submit" [disabled]="confirmForm.invalid">Confirm</button>
+  </form>
+</div>

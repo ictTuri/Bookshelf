@@ -1,14 +1,21 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { AuthStateService, AuthUser } from './service/auth/auth-state.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-root',
-  standalone: true,
-  imports: [CommonModule, RouterOutlet],
+  standalone: false,
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'client';
+  user$: Observable<AuthUser | null>;
+
+  constructor(private authState: AuthStateService) {
+    this.user$ = this.authState.user$;
+  }
+
+  logout() {
+    this.authState.clearUser();
+  }
 }

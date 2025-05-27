@@ -1,0 +1,15 @@
+<div class="auth-container">
+  <div class="auth-toggle">
+    <button (click)="toggleView()">
+      {{ isLoginView ? 'Switch to Register' : 'Switch to Login' }}
+    </button>
+  </div>
+
+  <div class="auth-content">
+    @if (isLoginView) {
+    <app-login />
+    } @else {
+    <app-register />
+    }
+  </div>
+</div>

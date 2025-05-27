@@ -1,0 +1,63 @@
+<div class="register-container">
+  <mat-card class="register-card">
+    <mat-card-header>
+      <mat-card-title>Register</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline">
+          <mat-label>First Name</mat-label>
+          <input matInput formControlName="firstname" placeholder="Enter your first name">
+          @if (registerForm.get('firstname')?.errors?.['required'] && registerForm.get('firstname')?.touched) {
+          <mat-error>First name is required</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Last Name</mat-label>
+          <input matInput formControlName="lastname" placeholder="Enter your last name">
+          @if (registerForm.get('lastname')?.errors?.['required'] && registerForm.get('lastname')?.touched) {
+          <mat-error>Last name is required</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" formControlName="email" placeholder="Enter your email">
+          @if (registerForm.get('email')?.errors?.['required'] && registerForm.get('email')?.touched) {
+          <mat-error>Email is required</mat-error>
+          }
+          @if (registerForm.get('email')?.errors?.['email'] && registerForm.get('email')?.touched) {
+          <mat-error>Please enter a valid email</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Password</mat-label>
+          <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" placeholder="Enter your password">
+          <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          @if (registerForm.get('password')?.errors?.['required'] && registerForm.get('password')?.touched) {
+          <mat-error>Password is required</mat-error>
+          }
+          @if (registerForm.get('password')?.errors?.['minlength'] && registerForm.get('password')?.touched) {
+          <mat-error>Password must be at least 8 characters</mat-error>
+          }
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" type="submit" [disabled]="!registerForm.valid">Register</button>
+
+        <div class="divider">
+          <span>OR</span>
+        </div>
+
+        <div id="google-signup-btn">
+          <img src="/google/google-logo.png" alt="Google" width="18" height="18">
+          Register with Google
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
