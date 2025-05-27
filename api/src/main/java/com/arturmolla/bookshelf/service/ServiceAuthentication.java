@@ -37,6 +37,8 @@ public class ServiceAuthentication {
     private final JwtService jwtService;
     @Value("${application.mailing.frontend.activation-url}")
     private String activationUrl;
+    @Value("${application.mailing.frontend.login-url}")
+    private String loginUrl;
 
     public void registerUser(DtoRegistrationRequest request) throws MessagingException {
         var userRole = repositoryRole.findByName("USER")
@@ -49,6 +51,7 @@ public class ServiceAuthentication {
                 .accountLocked(false)
                 .enabled(false)
                 .roles(List.of(userRole))
+                .provider("EMAIL_PASSWORD")
                 .build();
         repositoryUser.save(user);
         sendVerificationEmail(user);
@@ -65,20 +68,26 @@ public class ServiceAuthentication {
         return AuthenticationResponse.builder().token(jwtToken).build();
     }
 
-    public void activateAccount(String token) throws MessagingException {
-        Token savedToken = repositoryToken.findByToken(token)
+    public void activateAccount(String token, String email) throws MessagingException {
+        Token savedToken = repositoryToken.findByTokenAndUserEmail(token, email)
                 .orElseThrow(() -> new RuntimeException("Invalid Token"));
         if (LocalDateTime.now().isAfter(savedToken.getExpiresAt())) {
-            sendVerificationEmail(savedToken.getUser());
             repositoryToken.delete(savedToken);
+            this.generateAndSaveActivationToken(savedToken.getUser());
             throw new RuntimeException("Activation token has expired. A new token has been send");
         }
+        sendWelcomeEmail(savedToken.getUser());
         var user = repositoryUser.findById(savedToken.getUser().getId())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
         user.setEnabled(true);
         repositoryUser.save(user);
         savedToken.setValidatedAt(LocalDateTime.now());
         repositoryToken.save(savedToken);
+    }
+
+    private void sendWelcomeEmail(User user) throws MessagingException {
+        serviceEmail.sendWelcomeEmail(user.getEmail(), user.getFullName(), EmailTemplateName.WELCOME_MESSAGE,
+                loginUrl, "Account activated!");
     }
 
     private void sendVerificationEmail(User user) throws MessagingException {
@@ -89,7 +98,6 @@ public class ServiceAuthentication {
 
     private String generateAndSaveActivationToken(User user) {
         String generatedToken = generateActivationCode();
-//        String generatedToken = UUID.randomUUID().toString();
         var token = Token.builder()
                 .token(generatedToken)
                 .createdAt(LocalDateTime.now())

@@ -1,11 +1,11 @@
 package com.arturmolla.bookshelf.model.enums;
 
-import jakarta.validation.constraints.Email;
 import lombok.Getter;
 
 @Getter
 public enum EmailTemplateName {
-    ACTIVATE_ACCOUNT ("activate_account");
+    ACTIVATE_ACCOUNT("activate_account"),
+    WELCOME_MESSAGE("welcome_message");
 
     private final String name;
 

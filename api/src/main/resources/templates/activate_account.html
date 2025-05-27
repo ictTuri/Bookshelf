@@ -45,11 +45,12 @@
     </head>
     <body>
         <div class="container">
-            <h1>Account Activation</h1>
+            <h1>Account Activation!</h1>
             <p class="greeting" th:text="'Hello ' + ${username} + ','"></p>
             <p>Thank you for signing up! Please use the following activation code to activate your account:</p>
             <div class="activation-code"><span th:text="${activation_code}"></span></div>
-            <div class="activation-link"><a th:href="${confirmUrl}" target="_blank">Activate your account.</a></div>
+            <div class="activation-link"><a target="_blank" th:href="@{${confirmUrl}(email=${email})}">Activate your
+                account.</a></div>
         </div>
     </body>
 </html>

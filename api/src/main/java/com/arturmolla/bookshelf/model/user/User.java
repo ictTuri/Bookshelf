@@ -49,6 +49,7 @@ public class User implements UserDetails, Principal {
     @Column(unique = true)
     private String email;
     private String password;
+    private String provider; // e.g., GOOGLE, LOCAL
     private boolean accountLocked;
     private boolean enabled;
 

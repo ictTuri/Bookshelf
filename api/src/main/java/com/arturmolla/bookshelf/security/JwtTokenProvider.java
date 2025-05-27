@@ -1,11 +1,11 @@
-package com.bookshelf.security;
+package com.arturmolla.bookshelf.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -13,7 +13,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -25,10 +24,10 @@ import java.util.stream.Collectors;
 @Component
 public class JwtTokenProvider {
 
-    @Value("${security.jwt.token.secret-key}")
+    @Value("${application.security.jwt.secret-key}")
     private String secretKey;
 
-    @Value("${security.jwt.token.expiration}")
+    @Value("${application.security.jwt.expiration}")
     private long validityInMilliseconds;
 
     private SecretKey key;

@@ -1,4 +1,4 @@
-package com.bookshelf.model;
+package com.arturmolla.bookshelf.model.user;
 
 import java.util.Map;
 

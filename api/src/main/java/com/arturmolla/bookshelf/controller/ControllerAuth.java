@@ -39,7 +39,7 @@ public class ControllerAuth {
     }
 
     @GetMapping("/activate-account")
-    public void confirm(@RequestParam String token) throws MessagingException {
-        service.activateAccount(token);
+    public void confirm(@RequestParam String token, @RequestParam String email) throws MessagingException {
+        service.activateAccount(token, email);
     }
 }

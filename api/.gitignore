@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Configuration files with secrets
+/config/
+*.env
+application-*.yml
+!application-example.yml
