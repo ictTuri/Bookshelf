@@ -1,0 +1,276 @@
+.app-container {
+  display: flex;
+  height: 100vh;
+  font-family: 'Poppins', sans-serif;
+}
+
+.side-nav {
+  width: 250px;
+  background: linear-gradient(135deg, #64B5F6 0%, #1976D2 100%);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+
+  &.collapsed {
+    width: 80px;
+    padding: 20px 10px;
+
+    .nav-brand {
+      justify-content: center;
+
+      .logo {
+        width: 35px;
+        height: 35px;
+      }
+    }
+
+    a {
+      justify-content: center;
+      padding: 12px 5px;
+
+      i {
+        font-size: 1.2rem;
+      }
+    }
+  }
+}
+
+.collapse-toggle {
+  position: absolute;
+  right: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #64B5F6;
+  color: #1976D2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+  &:hover {
+    background: #f8f9fa;
+    transform: translateY(-50%) scale(1.1);
+  }
+
+  i {
+    font-size: 14px;
+  }
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 35px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  .logo {
+    width: 40px;
+    height: 40px;
+    filter: brightness(0) invert(1);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: white;
+  }
+}
+
+.nav-links {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  font-weight: 500;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateX(4px);
+  }
+
+  &.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+
+  i {
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+  }
+
+  span {
+    transition: opacity 0.3s;
+    font-size: 0.95rem;
+  }
+}
+
+.main-content {
+  flex: 1;
+  padding: 25px;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+}
+
+.auth-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
+
+  &.active {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+.auth-modal-content {
+  background: white;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 480px;
+  position: relative;
+  padding: 32px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.close-modal {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #6c757d;
+
+  &:hover {
+    background: #f8f9fa;
+    color: #dc3545;
+  }
+}
+
+.auth-switch {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 6px;
+  background: #f8f9fa;
+  border-radius: 12px;
+
+  button {
+    flex: 1;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: none;
+    color: #6c757d;
+
+    &.active {
+      background: white;
+      color: #1976d2;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    &:hover:not(.active) {
+      color: #1976d2;
+    }
+  }
+}
+
+// Update existing login/register card styles
+::ng-deep {
+  .login-card, .register-card {
+    box-shadow: none !important;
+    background: transparent !important;
+
+    mat-card-header {
+      display: none;
+    }
+
+    mat-form-field {
+      width: 100%;
+    }
+
+    .mat-mdc-raised-button {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      margin: 16px 0;
+    }
+
+    #google-signin-btn, #google-signup-btn {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: white;
+      color: #2c3e50;
+      font-weight: 500;
+
+      &:hover {
+        background: #f8f9fa;
+      }
+
+      img {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+}

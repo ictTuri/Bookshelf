@@ -1,0 +1,79 @@
+<div class="app-container">
+  <nav class="side-nav" [class.collapsed]="isNavCollapsed">
+    <div class="nav-brand">
+      <img src="logo.png" alt="Logo" class="logo">
+      <h1 *ngIf="!isNavCollapsed">Bookshelf</h1>
+    </div>
+    
+    <button class="collapse-toggle" (click)="toggleNav()">
+      <i class="fas" [class.fa-chevron-left]="!isNavCollapsed" [class.fa-chevron-right]="isNavCollapsed"></i>
+    </button>
+
+    <div class="nav-links">
+      <a routerLink="/home" routerLinkActive="active" [title]="isNavCollapsed ? 'Home' : ''">
+        <i class="fas fa-home"></i>
+        <span *ngIf="!isNavCollapsed">Home</span>
+      </a>
+      <a routerLink="/about" routerLinkActive="active" [title]="isNavCollapsed ? 'About' : ''">
+        <i class="fas fa-info-circle"></i>
+        <span *ngIf="!isNavCollapsed">About</span>
+      </a>
+      <a routerLink="/feedback" routerLinkActive="active" [title]="isNavCollapsed ? 'Feedback' : ''">
+        <i class="fas fa-comment"></i>
+        <span *ngIf="!isNavCollapsed">Feedback</span>
+      </a>
+    </div>
+
+    <div class="nav-footer">
+      @if (user$ | async; as user) {
+        <a routerLink="/profile" routerLinkActive="active" [title]="isNavCollapsed ? 'Profile' : ''">
+          <i class="fas fa-user"></i>
+          <span *ngIf="!isNavCollapsed">Profile</span>
+        </a>
+        <a (click)="logout()" style="cursor: pointer;" [title]="isNavCollapsed ? 'Logout' : ''">
+          <i class="fas fa-sign-out-alt"></i>
+          <span *ngIf="!isNavCollapsed">Logout</span>
+        </a>
+      } @else {
+        <a routerLink="/auth" routerLinkActive="active" [title]="isNavCollapsed ? 'Login/Register' : ''">
+          <i class="fas fa-sign-in-alt"></i>
+          <span *ngIf="!isNavCollapsed">Login/Register</span>
+        </a>
+      }
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
+
+<!-- Auth Modal Overlay -->
+<div class="auth-modal" [class.active]="showAuthModal">
+  <div class="auth-modal-content" [@slideAnimation]="showAuthModal">
+    <button class="close-modal" (click)="closeAuthModal()">
+      <i class="fas fa-times"></i>
+    </button>
+    
+    <div class="auth-container">
+      <div class="auth-switch">
+        <button 
+          [class.active]="!isRegisterView" 
+          (click)="setAuthView(false)">
+          Login
+        </button>
+        <button 
+          [class.active]="isRegisterView" 
+          (click)="setAuthView(true)">
+          Register
+        </button>
+      </div>
+
+      @if (!isRegisterView) {
+        <app-login (closeModal)="closeAuthModal()"/>
+      } @else {
+        <app-register (closeModal)="closeAuthModal()"/>
+      }
+    </div>
+  </div>
+</div>
