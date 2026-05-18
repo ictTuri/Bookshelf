@@ -8,14 +8,13 @@ import com.arturmolla.bookshelf.model.dto.DtoMessageRequest;
 import com.arturmolla.bookshelf.model.dto.DtoMessageResponse;
 import com.arturmolla.bookshelf.model.entity.EntityConversation;
 import com.arturmolla.bookshelf.model.entity.EntityMessage;
-import com.arturmolla.bookshelf.model.enums.RelationStatus;
-import com.arturmolla.bookshelf.model.enums.RelationType;
 import com.arturmolla.bookshelf.model.user.User;
 import com.arturmolla.bookshelf.repository.RepositoryConversation;
+import com.arturmolla.bookshelf.repository.RepositoryFriendship;
 import com.arturmolla.bookshelf.repository.RepositoryMessage;
 import com.arturmolla.bookshelf.repository.RepositoryUser;
-import com.arturmolla.bookshelf.repository.RepositoryUserRelation;
 import com.arturmolla.bookshelf.service.messaging.MessageEmitterRegistry;
+import com.arturmolla.bookshelf.util.EncryptionUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -61,10 +60,11 @@ public class ServiceMessage {
     private final RepositoryConversation repositoryConversation;
     private final RepositoryMessage      repositoryMessage;
     private final RepositoryUser         repositoryUser;
-    private final RepositoryUserRelation repositoryUserRelation;
+    private final RepositoryFriendship   repositoryFriendship;
     private final MessageEmitterRegistry emitterRegistry;
     private final ObjectMapper           objectMapper;
     private final ServiceFileStorage     serviceFileStorage;
+    private final EncryptionUtil encryptionUtil;
 
     // =========================================================================
     // SSE – connect / disconnect
@@ -183,7 +183,7 @@ public class ServiceMessage {
         EntityMessage message = EntityMessage.builder()
                 .conversation(conversation)
                 .sender(sender)
-                .content(request.getContent())
+                .content(encryptionUtil.encrypt(request.getContent()))
                 .replyTo(replyTo)
                 .mediaData(mediaData)
                 .mediaType(mediaType)
@@ -344,18 +344,7 @@ public class ServiceMessage {
 
     /** Throws if the two users are not accepted friends. */
     private void ensureFriendship(Long userAId, Long userBId) {
-        boolean friends =
-                repositoryUserRelation.findByRequesterIdAndAddresseeIdAndRelationType(
-                        userAId, userBId, RelationType.FRIEND_REQUEST)
-                        .map(r -> r.getStatus() == RelationStatus.ACCEPTED)
-                        .orElse(false)
-                ||
-                repositoryUserRelation.findByRequesterIdAndAddresseeIdAndRelationType(
-                        userBId, userAId, RelationType.FRIEND_REQUEST)
-                        .map(r -> r.getStatus() == RelationStatus.ACCEPTED)
-                        .orElse(false);
-
-        if (!friends) {
+        if (!repositoryFriendship.existsByUserIdAndFriendId(userAId, userBId)) {
             throw new OperationNotPermittedException(
                     "You can only message users who are your friends.");
         }
@@ -413,7 +402,7 @@ public class ServiceMessage {
                 .conversationId(m.getConversation().getId())
                 .senderId(m.getSender().getId())
                 .senderName(m.getSender().getFullName())
-                .content(m.getContent())
+                .content(encryptionUtil.decrypt(m.getContent()))
                 .replyTo(toReplySnippet(m.getReplyTo()))
                 .read(m.isRead())
                 .createdAt(m.getCreatedAt())
@@ -442,7 +431,7 @@ public class ServiceMessage {
                 .id(ref.getId())
                 .senderId(senderId)
                 .senderName(senderName)
-                .contentSnippet(truncate(ref.getContent(), 200))
+                .contentSnippet(truncate(encryptionUtil.decrypt(ref.getContent()), 200))
                 .build();
     }
 
@@ -453,7 +442,7 @@ public class ServiceMessage {
                 : c.getUser1();
 
         String preview = repositoryMessage.findLastMessage(c.getId())
-                .map(m -> truncate(m.getContent(), 80))
+                .map(m -> truncate(encryptionUtil.decrypt(m.getContent()), 80))
                 .orElse(null);
 
         long unread = repositoryMessage.countUnreadForUser(c.getId(), caller.getId());

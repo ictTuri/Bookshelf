@@ -6,6 +6,7 @@ import com.arturmolla.bookshelf.model.entity.EntityNotification;
 import com.arturmolla.bookshelf.model.enums.NotificationType;
 import com.arturmolla.bookshelf.model.user.User;
 import com.arturmolla.bookshelf.repository.RepositoryNotification;
+import com.arturmolla.bookshelf.util.EncryptionUtil; // Import EncryptionUtil
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import java.util.Objects;
 public class ServiceNotification {
 
     private final RepositoryNotification repositoryNotification;
+    private final EncryptionUtil encryptionUtil; // Inject EncryptionUtil
 
     // ─────────────────────────────────────────────────────────────
     //  Internal helper – called by other services
@@ -53,12 +55,17 @@ public class ServiceNotification {
         if (actor != null && Objects.equals(recipient.getId(), actor.getId())) {
             return;
         }
+
+        // Encrypt title and message before saving
+        String encryptedTitle = encryptionUtil.encrypt(title);
+        String encryptedMessage = encryptionUtil.encrypt(message);
+
         EntityNotification notification = EntityNotification.builder()
                 .recipient(recipient)
                 .actor(actor)
                 .type(type)
-                .title(title)
-                .message(message)
+                .title(encryptedTitle) // Use encrypted title
+                .message(encryptedMessage) // Use encrypted message
                 .referenceId(referenceId)
                 .referenceType(referenceType)
                 .build();
@@ -149,11 +156,15 @@ public class ServiceNotification {
     // ─────────────────────────────────────────────────────────────
 
     private DtoNotificationResponse toResponse(EntityNotification n) {
+        // Decrypt title and message before sending to frontend
+        String decryptedTitle = encryptionUtil.decrypt(n.getTitle());
+        String decryptedMessage = encryptionUtil.decrypt(n.getMessage());
+
         return DtoNotificationResponse.builder()
                 .id(n.getId())
                 .type(n.getType())
-                .title(n.getTitle())
-                .message(n.getMessage())
+                .title(decryptedTitle) // Use decrypted title
+                .message(decryptedMessage) // Use decrypted message
                 .read(n.isRead())
                 .referenceId(n.getReferenceId())
                 .referenceType(n.getReferenceType())
@@ -163,4 +174,3 @@ public class ServiceNotification {
                 .build();
     }
 }
-

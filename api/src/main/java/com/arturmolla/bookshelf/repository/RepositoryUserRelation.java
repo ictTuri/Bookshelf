@@ -34,19 +34,6 @@ public interface RepositoryUserRelation extends JpaRepository<EntityUserRelation
     Page<EntityUserRelation> findByRequesterIdAndRelationTypeAndStatus(
             Long requesterId, RelationType type, RelationStatus status, Pageable pageable);
 
-    // ── Friends (accepted) ────────────────────────────────────────────────────
-
-    /**
-     * Accepted friendships where the user is either the requester or the addressee.
-     */
-    @Query("""
-            SELECT r FROM EntityUserRelation r
-            WHERE r.relationType = 'FRIEND_REQUEST'
-              AND r.status = 'ACCEPTED'
-              AND (r.requester.id = :userId OR r.addressee.id = :userId)
-            """)
-    Page<EntityUserRelation> findFriends(@Param("userId") Long userId, Pageable pageable);
-
     // ── Follows ───────────────────────────────────────────────────────────────
 
     /** Users that :userId is following. */
@@ -59,14 +46,6 @@ public interface RepositoryUserRelation extends JpaRepository<EntityUserRelation
 
     // ── Counts ────────────────────────────────────────────────────────────────
 
-    @Query("""
-            SELECT COUNT(r) FROM EntityUserRelation r
-            WHERE r.relationType = 'FRIEND_REQUEST'
-              AND r.status = 'ACCEPTED'
-              AND (r.requester.id = :userId OR r.addressee.id = :userId)
-            """)
-    long countFriends(@Param("userId") Long userId);
-
     long countByRequesterIdAndRelationType(Long requesterId, RelationType type);
 
     long countByAddresseeIdAndRelationType(Long addresseeId, RelationType type);
@@ -75,4 +54,3 @@ public interface RepositoryUserRelation extends JpaRepository<EntityUserRelation
     @Query("DELETE FROM EntityUserRelation r WHERE r.requester.id = :userId OR r.addressee.id = :userId")
     void deleteAllInvolvingUser(@Param("userId") Long userId);
 }
-

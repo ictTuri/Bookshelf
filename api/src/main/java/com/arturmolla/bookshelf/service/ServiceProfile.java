@@ -19,6 +19,7 @@ public class ServiceProfile {
     private final RepositoryProfile repositoryProfile;
     private final MapperProfile mapperProfile;
     private final ServiceFileStorage fileStorage;
+    private final ServiceAdmin serviceAdmin;
 
     public DtoProfile getUserProfile(Authentication connectedUser) {
         var user = (User) connectedUser.getPrincipal();
@@ -39,9 +40,7 @@ public class ServiceProfile {
     @Transactional
     public void deleteUserProfile(Authentication connectedUser) {
         var principal = (User) connectedUser.getPrincipal();
-        User user = repositoryProfile.findById(principal.getId())
-                .orElseThrow(() -> new EntityNotFoundException("User profile not found"));
-        repositoryProfile.delete(user);
+        serviceAdmin.deleteUser(principal.getId());
     }
 
     // -------------------------------------------------------------------------
