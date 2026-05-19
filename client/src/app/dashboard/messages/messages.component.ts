@@ -20,6 +20,8 @@ export class MessagesComponent implements OnInit, OnDestroy {
   friendId: number | null = null;
   activeConversationId: number | null = null;
   friendName = '';
+  activeFriendEmail = '';
+  activeFriendProfilePic: string | null = null;
 
   conversations: DtoConversationResponse[] = [];
   conversationsLoading = false;
@@ -261,11 +263,33 @@ export class MessagesComponent implements OnInit, OnDestroy {
   private updateActiveFriendName(): void {
     if (!this.friendId) {
       this.friendName = '';
+      this.activeFriendEmail = '';
+      this.activeFriendProfilePic = null;
       return;
     }
 
     const activeConversation = this.conversations.find((c) => c.friendId === this.friendId);
     this.friendName = activeConversation?.friendName ?? 'Chat';
+    this.activeFriendEmail = activeConversation?.friendEmail ?? '';
+    this.activeFriendProfilePic = activeConversation?.friendProfilePic ?? null;
+  }
+
+  getConversationInitials(conv: DtoConversationResponse): string {
+    if (conv.friendName?.trim()) {
+      const parts = conv.friendName.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0][0].toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return conv.friendEmail ? conv.friendEmail[0].toUpperCase() : '?';
+  }
+
+  getUserInitials(fullName: string | undefined | null, email: string): string {
+    if (fullName?.trim()) {
+      const parts = fullName.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0][0].toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return email ? email[0].toUpperCase() : '?';
   }
 
   /** Update conversation sidebar in-place from an incoming SSE message (no HTTP call). */

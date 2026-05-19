@@ -106,11 +106,19 @@
           <ul class="sidebar-friends-list">
             @for (friend of friends; track friend.id) {
               <li class="sidebar-friend-item">
+                <div class="friend-avatar-container">
+                  @if (friend.profilePic) {
+                    <img [src]="'data:image/jpeg;base64,' + friend.profilePic" [alt]="friend.fullName" class="friend-avatar">
+                  } @else {
+                    <div class="friend-initials">{{ getUserInitials(friend.fullName) }}</div>
+                  }
+                </div>
                 <div class="friend-info">
-                  <p class="friend-name">{{ getOtherUserName(friend) }}</p>
+                  <p class="friend-name">{{ friend.fullName }}</p>
+                  <p class="friend-email">{{ friend.email }}</p>
                 </div>
                 <div class="friend-actions">
-                  <button class="btn-message" [routerLink]="['/messages']" [queryParams]="{ friendId: getChatFriendId(friend) }" [disabled]="!getChatFriendId(friend)" title="Send Message">
+                  <button class="btn-message" [routerLink]="['/messages']" [queryParams]="{ friendId: friend.id }" title="Send Message">
                     <i class="fas fa-comment"></i>
                   </button>
                   <button class="btn-remove" (click)="removeFriend(friend)" title="Remove Friend">

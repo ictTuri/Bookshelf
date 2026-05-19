@@ -127,10 +127,16 @@ export class NavComponent implements OnInit, OnDestroy {
   }
 
   navigateToRef(n: DtoNotificationResponse): void {
-    if (!n.referenceId || !n.referenceType) return;
-
-    const refType = n.referenceType.toUpperCase();
+    const type = n.type.toUpperCase();
+    const refType = n.referenceType?.toUpperCase();
     const id = n.referenceId;
+
+    if (refType === 'FRIEND_REQUEST') {
+      this.router.navigate(['/friends']);
+      return;
+    }
+
+    if (!id || !refType) return;
 
     if (refType === 'POST') {
       this.router.navigate(['/home'], { queryParams: { postId: id } });
@@ -156,6 +162,7 @@ export class NavComponent implements OnInit, OnDestroy {
       POST_COMMENT: 'fa-comment',
       FEEDBACK_COMMENTED: 'fa-comment-dots',
       SYSTEM: 'fa-info-circle',
+      FRIEND_REQUEST_ACCEPTED: 'fa-user-check'
     };
     return map[type] ?? 'fa-bell';
   }
@@ -169,6 +176,7 @@ export class NavComponent implements OnInit, OnDestroy {
       POST_LIKE:          { source: 'Home',       summary: `${actor} liked your post` },
       POST_COMMENT:       { source: 'Home',       summary: `${actor} commented on your post` },
       NEW_FOLLOWER:       { source: 'Community',  summary: `${actor} started following you` },
+      FRIEND_REQUEST_ACCEPTED: { source: 'Friends', summary: `${actor} accepted your friend request` },
       BOOK_BORROWED:      { source: 'Library',    summary: `${actor} borrowed your book` },
       BOOK_RETURNED:      { source: 'Library',    summary: `${actor} returned your book` },
       BOOK_REQUEST:       { source: 'Library',    summary: `${actor} requested your book` },
@@ -353,6 +361,15 @@ export class NavComponent implements OnInit, OnDestroy {
   getInitials(fullName: string | undefined, email: string): string {
     if (fullName?.trim()) return fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     return email ? email[0].toUpperCase() : '?';
+  }
+
+  getConversationInitials(conv: DtoConversationResponse): string {
+    if (conv.friendName?.trim()) {
+      const parts = conv.friendName.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0][0].toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return conv.friendEmail ? conv.friendEmail[0].toUpperCase() : '?';
   }
 
   private ensureUserFullName(user: AuthUser): void {

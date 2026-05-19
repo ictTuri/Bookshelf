@@ -437,9 +437,7 @@ public class ServiceMessage {
 
     private DtoConversationResponse toConversationDto(EntityConversation c, User caller) {
         // The "friend" is whoever is not the caller in this conversation.
-        User friend = Objects.equals(c.getUser1().getId(), caller.getId())
-                ? c.getUser2()
-                : c.getUser1();
+        User friend = Objects.equals(c.getUser1().getId(), caller.getId()) ? c.getUser2() : c.getUser1();
 
         String preview = repositoryMessage.findLastMessage(c.getId())
                 .map(m -> truncate(encryptionUtil.decrypt(m.getContent()), 80))
@@ -451,6 +449,8 @@ public class ServiceMessage {
                 .conversationId(c.getId())
                 .friendId(friend.getId())
                 .friendName(friend.getFullName())
+                .friendEmail(friend.getEmail())
+                .friendProfilePic(serviceFileStorage.loadProfilePic(friend.getId()))
                 .lastMessagePreview(preview)
                 .lastMessageAt(c.getLastMessageAt())
                 .unreadCount(unread)

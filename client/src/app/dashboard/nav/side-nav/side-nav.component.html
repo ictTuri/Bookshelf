@@ -18,7 +18,9 @@
         <i class="fas fa-user-friends"></i>
         <span class="side-nav-label">Friends</span>
       </a>
+    </div>
 
+    <div class="side-nav-bottom">
       <div class="side-nav-divider"></div>
 
       <a routerLink="/about" routerLinkActive="active" class="side-nav-item" [title]="collapsed ? 'About' : ''">
@@ -37,13 +39,13 @@
           <span class="side-nav-label">Admin</span>
         </a>
       }
-    </div>
 
-    <div class="side-nav-footer">
-      <button class="side-nav-toggle" (click)="toggle()" [attr.aria-label]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'" [title]="collapsed ? 'Expand' : 'Collapse'">
-        <i class="fas fa-chevron-left"></i>
-        <span class="side-nav-label">Collapse</span>
-      </button>
+      <div class="side-nav-footer">
+        <button class="side-nav-toggle" (click)="toggle()" [attr.aria-label]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'" [title]="collapsed ? 'Expand' : 'Collapse'">
+          <i class="fas fa-chevron-left"></i>
+          <span class="side-nav-label">Collapse</span>
+        </button>
+      </div>
     </div>
 
   </nav>

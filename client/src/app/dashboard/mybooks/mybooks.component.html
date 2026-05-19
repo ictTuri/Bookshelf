@@ -1,31 +1,32 @@
 <div class="library-page">
   <div class="library-wrapper">
 
-    <!-- Vertical Sidebar -->
-    <aside class="library-sidebar">
-      <!-- Search Bar -->
-      <div class="sidebar-search">
-        <i class="fas fa-search"></i>
-        <input
-          type="text"
-          class="search-input"
-          placeholder="Search books..."
-          [value]="searchQuery"
-          (input)="onSearch($any($event.target).value)">
-          @if (searchQuery) {
-            <button class="search-clear" (click)="onSearch('')" title="Clear">
-              <i class="fas fa-times"></i>
-            </button>
-          }
+    <!-- Top Navigation Bar (Previously Sidebar) -->
+    <header class="library-top-nav">
+      <div class="nav-controls">
+        <!-- Search Bar -->
+        <div class="nav-search">
+          <i class="fas fa-search"></i>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Search books..."
+            [value]="searchQuery"
+            (input)="onSearch($any($event.target).value)">
+            @if (searchQuery) {
+              <button class="search-clear" (click)="onSearch('')" title="Clear">
+                <i class="fas fa-times"></i>
+              </button>
+            }
         </div>
 
         <button class="btn-add-book" (click)="openAdd()">
           <i class="fas fa-plus"></i>
           <span>Add Book</span>
         </button>
+      </div>
 
-        <div class="sidebar-divider"></div>
-
+      <div class="nav-tabs">
         <button class="lib-tab" [class.active]="activeTab === 'mybooks'" (click)="switchTab('mybooks')">
           <i class="fas fa-book"></i>
           <span>My Books</span>
@@ -54,18 +55,19 @@
             <span class="lib-badge">{{ totalElements }}</span>
           }
         </button>
+      </div>
 
-        <!-- Sub-toggle when Requested active -->
-        @if (activeTab === 'requested') {
-          <div class="lib-subtabs">
-            <button class="lib-subtab" [class.active]="requestedView === 'by-me'" (click)="switchRequestedView('by-me')">My Requests</button>
-            <button class="lib-subtab" [class.active]="requestedView === 'from-me'" (click)="switchRequestedView('from-me')">For My Books</button>
-          </div>
-        }
-      </aside>
+      <!-- Sub-toggle when Requested active -->
+      @if (activeTab === 'requested') {
+        <div class="lib-subtabs">
+          <button class="lib-subtab" [class.active]="requestedView === 'by-me'" (click)="switchRequestedView('by-me')">My Requests</button>
+          <button class="lib-subtab" [class.active]="requestedView === 'from-me'" (click)="switchRequestedView('from-me')">For My Books</button>
+        </div>
+      }
+    </header>
 
-      <!-- Content -->
-      <div class="library-content">
+    <!-- Content -->
+    <div class="library-content">
 
         <!-- My Books Tab -->
         @if (activeTab === 'mybooks') {

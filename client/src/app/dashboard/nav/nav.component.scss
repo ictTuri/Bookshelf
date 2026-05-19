@@ -2,11 +2,12 @@
 .app-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   font-family: 'Poppins', sans-serif;
 }
 
-// â”€â”€ Top Navbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Top Navbar ────────────────────────────────────────────────────────────
 .top-nav {
   background: rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(18px) saturate(180%);
@@ -20,8 +21,6 @@
   flex-shrink: 0;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10), 0 1px 0 rgba(255,255,255,0.6) inset;
   z-index: 200;
-  position: sticky;
-  top: 12px;
   margin: 12px 16px 0;
   border-radius: 18px;
 }
@@ -466,14 +465,6 @@
         flex-direction: column;
         gap: 2px;
 
-        .notif-source {
-          font-size: 0.72rem;
-          font-weight: 600;
-          color: #1976D2;
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
-        }
-
         .notif-message {
           font-size: 0.82rem;
           color: #333;
@@ -586,11 +577,30 @@
         }
       }
 
+      .conv-avatar-container {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
       .conv-avatar {
-        font-size: 1.5rem;
-        color: #8aa3c1;
-        min-width: 32px;
-        text-align: center;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .conv-initials {
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
       }
 
       .conv-body {
@@ -598,7 +608,13 @@
         min-width: 0;
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 1px;
+
+        .conv-header {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+        }
 
         .conv-name {
           font-size: 0.88rem;
@@ -607,11 +623,21 @@
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          line-height: 1.2;
+        }
+
+        .conv-email {
+          font-size: 0.7rem;
+          color: #8aa3c1;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          margin-bottom: 2px;
         }
 
         .conv-preview {
           font-size: 0.78rem;
-          color: #8f9aa6;
+          color: #6c757d;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -687,11 +713,13 @@
   flex-direction: row;
   flex: 1;
   align-items: stretch;
+  overflow: hidden;
 }
 
 .main-content {
   flex: 1;
   min-width: 0;
+  overflow-y: auto;
 }
 
 // â”€â”€ Animation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

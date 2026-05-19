@@ -7,10 +7,9 @@ $transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 // ── Side nav ─────────────────────────────────────────────────────────────
 .side-nav {
   position: sticky;
-  top: 80px;
-  align-self: flex-start;
+  top: 92px;
   width: $nav-width;
-  max-height: calc(100vh - 92px);
+  height: calc(100vh - 108px);
 
   background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(20px) saturate(160%);
@@ -21,11 +20,11 @@ $transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
   display: flex;
   flex-direction: column;
-  padding: 10px 8px;
+  padding: 10px 8px 0;
   overflow-y: auto;
   overflow-x: hidden;
   flex-shrink: 0;
-  margin: 12px 0 12px 12px;
+  margin: 0 0 16px 12px;
 
   transition: width $transition;
 
@@ -57,6 +56,13 @@ $transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   flex-direction: column;
   gap: 1px;
   flex: 1;
+}
+
+.side-nav-bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 12px;
 }
 
 // ── Individual nav item ──────────────────────────────────────────────────

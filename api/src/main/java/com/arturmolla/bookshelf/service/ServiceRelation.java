@@ -1,6 +1,7 @@
 package com.arturmolla.bookshelf.service;
 
 import com.arturmolla.bookshelf.model.common.PageResponse;
+import com.arturmolla.bookshelf.model.dto.DtoFriendInfo;
 import com.arturmolla.bookshelf.model.dto.DtoFriendPageResponse;
 import com.arturmolla.bookshelf.model.dto.DtoRelationResponse;
 import com.arturmolla.bookshelf.model.dto.DtoUserSearchResult;
@@ -246,17 +247,17 @@ public class ServiceRelation {
 
     /** Returns all accepted friends of the authenticated user, paged. */
     @Transactional(readOnly = true)
-    public PageResponse<DtoRelationResponse> getMyFriends(int page, int size, Authentication connectedUser) {
+    public PageResponse<DtoFriendInfo> getMyFriends(int page, int size, Authentication connectedUser) {
         var user = (User) connectedUser.getPrincipal();
         Page<EntityFriendship> result = friendshipRepository.findByUserId(
                 user.getId(), PageRequest.of(page, size));
                 
-        List<DtoRelationResponse> content = result.getContent()
+        List<DtoFriendInfo> content = result.getContent()
                 .stream()
-                .map(this::toRelationResponseFromFriendship)
+                .map(this::toFriendInfo)
                 .toList();
 
-        return PageResponse.<DtoRelationResponse>builder()
+        return PageResponse.<DtoFriendInfo>builder()
                 .content(content)
                 .number(result.getNumber())
                 .size(result.getSize())
@@ -446,16 +447,17 @@ public class ServiceRelation {
         }
     }
     
-    private DtoRelationResponse toRelationResponseFromFriendship(EntityFriendship f) {
-        return DtoRelationResponse.builder()
-                .id(f.getId())
-                .requesterId(f.getUser().getId())
-                .requesterFullName(f.getUser().getFullName())
-                .addresseeId(f.getFriend().getId())
-                .addresseeFullName(f.getFriend().getFullName())
-                .relationType(RelationType.FRIEND_REQUEST)
-                .status(RelationStatus.ACCEPTED)
-                .createdAt(f.getCreatedAt())
+    private DtoFriendInfo toFriendInfo(EntityFriendship f) {
+        User friend = f.getFriend();
+        byte[] profilePic = null;
+        if (fileStorage.hasProfilePic(friend.getId())) {
+            profilePic = fileStorage.loadProfilePic(friend.getId());
+        }
+        return DtoFriendInfo.builder()
+                .id(friend.getId())
+                .fullName(friend.getFullName())
+                .email(friend.getEmail())
+                .profilePic(profilePic)
                 .build();
     }
 

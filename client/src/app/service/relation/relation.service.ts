@@ -9,6 +9,8 @@ import {
   RelationPageResponse,
   UserSearchPageResponse
 } from '../../interfaces/relation.interface';
+import { UserSummary } from '../../interfaces/user.interface';
+import { PageResponse } from '../../interfaces/page.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -38,8 +40,8 @@ export class RelationService {
     return this.http.get<RelationPageResponse>(`${this.baseUrl}/friend-requests/outgoing?page=${page}&size=${size}`);
   }
 
-  getFriends(page: number = 0, size: number = 20): Observable<RelationPageResponse> {
-    return this.http.get<RelationPageResponse>(`${this.baseUrl}/friends?page=${page}&size=${size}`);
+  getFriends(page: number = 0, size: number = 20): Observable<PageResponse<UserSummary>> {
+    return this.http.get<PageResponse<UserSummary>>(`${this.baseUrl}/friends?page=${page}&size=${size}`);
   }
 
   removeFriend(targetUserId: number): Observable<void> {

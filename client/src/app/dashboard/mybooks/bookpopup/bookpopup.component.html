@@ -182,6 +182,12 @@
                   <div class="error-msg">{{ error }}</div>
                 }
                 <div class="popup-actions">
+                  @if (mode === 'add') {
+                    <label class="stay-open-toggle">
+                      <input type="checkbox" [(ngModel)]="stayOpen" [ngModelOptions]="{standalone: true}">
+                      <span>Stay open to add more</span>
+                    </label>
+                  }
                   <button type="button" class="btn-cancel" (click)="close()" [disabled]="isSubmitting">Cancel</button>
                   <button type="submit" class="btn-save" [disabled]="isSubmitting">
                     @if (!isSubmitting) {

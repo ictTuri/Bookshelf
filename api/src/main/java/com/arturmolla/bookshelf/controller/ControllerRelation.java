@@ -2,6 +2,7 @@ package com.arturmolla.bookshelf.controller;
 
 import com.arturmolla.bookshelf.aspects.annotation.RateLimit;
 import com.arturmolla.bookshelf.model.common.PageResponse;
+import com.arturmolla.bookshelf.model.dto.DtoFriendInfo;
 import com.arturmolla.bookshelf.model.dto.DtoFriendPageResponse;
 import com.arturmolla.bookshelf.model.dto.DtoRelationResponse;
 import com.arturmolla.bookshelf.model.dto.DtoUserSearchResult;
@@ -90,7 +91,7 @@ public class ControllerRelation {
     @GetMapping("/friends")
     @Operation(summary = "Get the current user's friends list")
     @RateLimit(capacity = 10, refillTokens = 10, refillDurationMinutes = 1)
-    public ResponseEntity<PageResponse<DtoRelationResponse>> getMyFriends(
+    public ResponseEntity<PageResponse<DtoFriendInfo>> getMyFriends(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             Authentication connectedUser) {
@@ -188,4 +189,3 @@ public class ControllerRelation {
         return ResponseEntity.ok(relationService.viewUserPage(userId, connectedUser));
     }
 }
-
