@@ -54,7 +54,7 @@ public class EntityNotification {
     private NotificationType type;
 
     /** Short heading shown in the notification bell. */
-    @Column(nullable = false)
+    @Column(nullable = false, length = 512)
     private String title;
 
     /** Full human-readable message. */
@@ -78,4 +78,3 @@ public class EntityNotification {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }
-

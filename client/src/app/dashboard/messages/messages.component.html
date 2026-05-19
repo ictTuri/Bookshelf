@@ -31,17 +31,31 @@
               [class.active]="isActiveConversation(conv.friendId)"
               (click)="openConversation(conv)"
               [title]="isSidebarCollapsed ? conv.friendName : ''">
-              <div class="conversation-avatar">
-                <i class="fas fa-user-circle"></i>
+              <div class="conversation-avatar-container">
+                @if (conv.friendProfilePic) {
+                  <img [src]="'data:image/jpeg;base64,' + conv.friendProfilePic" [alt]="conv.friendName" class="conversation-avatar-img">
+                } @else {
+                  <div class="conversation-initials">{{ getConversationInitials(conv) }}</div>
+                }
               </div>
               @if (!isSidebarCollapsed) {
                 <div class="conversation-body">
                   <p class="conversation-name">{{ conv.friendName }}</p>
+                  <p class="conversation-email">{{ conv.friendEmail }}</p>
                   <p class="conversation-preview">{{ conv.lastMessagePreview || 'No messages yet' }}</p>
                 </div>
-              }
-              @if (conv.unreadCount > 0) {
-                <span class="conversation-unread" [class.collapsed]="isSidebarCollapsed">
+                <div class="conversation-actions">
+                  <button class="btn-view-profile" [routerLink]="['/profile']" [queryParams]="{ id: conv.friendId }" (click)="$event.stopPropagation()" title="View Profile">
+                    <i class="fas fa-user-circle"></i>
+                  </button>
+                  @if (conv.unreadCount > 0) {
+                    <span class="conversation-unread">
+                      {{ conv.unreadCount > 99 ? '99+' : conv.unreadCount }}
+                    </span>
+                  }
+                </div>
+              } @else if (conv.unreadCount > 0) {
+                <span class="conversation-unread conversation-unread--collapsed">
                   {{ conv.unreadCount > 99 ? '99+' : conv.unreadCount }}
                 </span>
               }
@@ -59,8 +73,17 @@
         </div>
       } @else {
         <div class="chat-header">
-          <i class="fas fa-user-circle"></i>
-          <span>{{ friendName || 'Chat' }}</span>
+          <div class="chat-friend-avatar">
+            @if (activeFriendProfilePic) {
+              <img [src]="'data:image/jpeg;base64,' + activeFriendProfilePic" [alt]="friendName" class="chat-avatar-img">
+            } @else {
+              <div class="chat-initials">{{ getUserInitials(friendName, activeFriendEmail) }}</div>
+            }
+          </div>
+          <div class="chat-friend-info">
+            <span class="chat-friend-name">{{ friendName || 'Chat' }}</span>
+            <span class="chat-friend-email">{{ activeFriendEmail }}</span>
+          </div>
         </div>
 
         <div class="messages-wrapper">

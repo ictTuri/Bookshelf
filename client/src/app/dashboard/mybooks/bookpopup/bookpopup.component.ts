@@ -18,8 +18,9 @@ export class BookpopupComponent implements OnChanges {
 
   form: FormGroup;
   isSubmitting = false;
+  stayOpen = false;
   error = '';
-  
+
   // File upload properties
   selectedCoverFile: File | null = null;
   coverPreviewUrl: string | null = null;
@@ -95,9 +96,7 @@ export class BookpopupComponent implements OnChanges {
         if (this.selectedCoverFile && saved.id) {
           this.uploadCoverImage(saved.id, saved);
         } else {
-          this.isSubmitting = false;
-          this.bookSaved.emit(saved);
-          this.closePopup.emit();
+          this.handleSuccess(saved);
         }
       },
       error: () => {
@@ -105,6 +104,18 @@ export class BookpopupComponent implements OnChanges {
         this.error = 'Failed to save book. Please try again.';
       }
     });
+  }
+
+  private handleSuccess(saved: Book): void {
+    this.isSubmitting = false;
+    this.bookSaved.emit(saved);
+    if (this.mode === 'add' && this.stayOpen) {
+      this.form.reset({ shareable: false, favourite: false, archived: false, read: false });
+      this.resetFileSelection();
+      this.resetSearch();
+    } else {
+      this.closePopup.emit();
+    }
   }
 
   close(): void {
@@ -188,39 +199,33 @@ export class BookpopupComponent implements OnChanges {
 
   private uploadCoverImage(bookId: number, savedBook: Book): void {
     if (!this.selectedCoverFile) {
-      this.isSubmitting = false;
-      this.bookSaved.emit(savedBook);
-      this.closePopup.emit();
+      this.handleSuccess(savedBook);
       return;
     }
 
     this.isUploadingCover = true;
     this.booksService.uploadBookCover(bookId, this.selectedCoverFile).subscribe({
       next: () => {
-        this.isSubmitting = false;
         this.isUploadingCover = false;
         // Clear the file selection and preview after successful upload
         this.resetFileSelection();
         // Refresh the book to get updated cover
         this.booksService.getBookById(bookId).subscribe({
           next: (updatedBook) => {
-            this.bookSaved.emit(updatedBook);
-            this.closePopup.emit();
+            this.handleSuccess(updatedBook);
           },
           error: () => {
-            this.bookSaved.emit(savedBook);
-            this.closePopup.emit();
+            this.handleSuccess(savedBook);
           }
         });
       },
       error: () => {
-        this.isSubmitting = false;
         this.isUploadingCover = false;
         // Clear the file selection even on error to prevent confusion
         this.resetFileSelection();
         this.error = 'Book saved but failed to upload cover image.';
-        // Still emit success since book was saved
-        this.bookSaved.emit(savedBook);
+        // Still handle success since book was saved
+        this.handleSuccess(savedBook);
       }
     });
   }

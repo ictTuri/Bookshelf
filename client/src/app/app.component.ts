@@ -9,6 +9,7 @@ import { Observable } from 'rxjs';
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
+  title = 'Bookshelf';
   user$: Observable<AuthUser | null>;
 
   constructor(private authState: AuthStateService) {

@@ -1,14 +1,17 @@
 package com.arturmolla.bookshelf.service;
 
 import com.arturmolla.bookshelf.model.common.PageResponse;
+import com.arturmolla.bookshelf.model.dto.DtoFriendInfo;
 import com.arturmolla.bookshelf.model.dto.DtoFriendPageResponse;
 import com.arturmolla.bookshelf.model.dto.DtoRelationResponse;
 import com.arturmolla.bookshelf.model.dto.DtoUserSearchResult;
+import com.arturmolla.bookshelf.model.entity.EntityFriendship;
 import com.arturmolla.bookshelf.model.entity.EntityUserRelation;
 import com.arturmolla.bookshelf.model.enums.NotificationType;
 import com.arturmolla.bookshelf.model.enums.RelationStatus;
 import com.arturmolla.bookshelf.model.enums.RelationType;
 import com.arturmolla.bookshelf.model.user.User;
+import com.arturmolla.bookshelf.repository.RepositoryFriendship;
 import com.arturmolla.bookshelf.repository.RepositoryUser;
 import com.arturmolla.bookshelf.repository.RepositoryUserRelation;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -30,6 +34,7 @@ public class ServiceRelation {
 
     private final RepositoryUserRelation relationRepository;
     private final RepositoryUser userRepository;
+    private final RepositoryFriendship friendshipRepository;
     private final ServiceNotification notificationService;
     private final ServiceFileStorage fileStorage;
 
@@ -49,6 +54,10 @@ public class ServiceRelation {
         }
 
         User addressee = findUser(targetUserId);
+        
+        if (friendshipRepository.existsByUserIdAndFriendId(requester.getId(), targetUserId)) {
+            throw new IllegalArgumentException("You are already friends with this user.");
+        }
 
         if (relationRepository.existsByRequesterIdAndAddresseeIdAndRelationType(
                 requester.getId(), targetUserId, RelationType.FRIEND_REQUEST)
@@ -91,6 +100,20 @@ public class ServiceRelation {
 
         relation.setStatus(RelationStatus.ACCEPTED);
         relation = relationRepository.save(relation);
+        
+        User requester = relation.getRequester();
+        
+        EntityFriendship friendship1 = EntityFriendship.builder()
+            .user(requester)
+            .friend(addressee)
+            .build();
+            
+        EntityFriendship friendship2 = EntityFriendship.builder()
+            .user(addressee)
+            .friend(requester)
+            .build();
+            
+        friendshipRepository.saveAll(List.of(friendship1, friendship2));
 
         notificationService.notify(
                 relation.getRequester(),
@@ -139,19 +162,24 @@ public class ServiceRelation {
     public void removeFriend(Long targetUserId, Authentication connectedUser) {
         var currentUser = (User) connectedUser.getPrincipal();
 
-        // Try requester → targetUser direction first
-        EntityUserRelation relation = relationRepository
+        // Check if they are friends first
+        if (friendshipRepository.existsByUserIdAndFriendId(currentUser.getId(), targetUserId)) {
+            friendshipRepository.deleteByUserIdAndFriendId(currentUser.getId(), targetUserId);
+            friendshipRepository.deleteByUserIdAndFriendId(targetUserId, currentUser.getId());
+        }
+        
+        // Also remove any friend requests
+        Optional<EntityUserRelation> relationOpt = relationRepository
                 .findByRequesterIdAndAddresseeIdAndRelationType(
-                        currentUser.getId(), targetUserId, RelationType.FRIEND_REQUEST)
-                .orElseGet(() ->
-                        // Try reverse direction
-                        relationRepository.findByRequesterIdAndAddresseeIdAndRelationType(
-                                targetUserId, currentUser.getId(), RelationType.FRIEND_REQUEST)
-                                .orElseThrow(() -> new EntityNotFoundException(
-                                        "No friend relation found with userId=" + targetUserId))
-                );
-
-        relationRepository.delete(relation);
+                        currentUser.getId(), targetUserId, RelationType.FRIEND_REQUEST);
+        
+        if (relationOpt.isEmpty()) {
+            relationOpt = relationRepository.findByRequesterIdAndAddresseeIdAndRelationType(
+                                targetUserId, currentUser.getId(), RelationType.FRIEND_REQUEST);
+        }
+        
+        relationOpt.ifPresent(relationRepository::delete);
+        
         log.info("Friendship removed between userId={} and userId={}", currentUser.getId(), targetUserId);
     }
 
@@ -219,11 +247,25 @@ public class ServiceRelation {
 
     /** Returns all accepted friends of the authenticated user, paged. */
     @Transactional(readOnly = true)
-    public PageResponse<DtoRelationResponse> getMyFriends(int page, int size, Authentication connectedUser) {
+    public PageResponse<DtoFriendInfo> getMyFriends(int page, int size, Authentication connectedUser) {
         var user = (User) connectedUser.getPrincipal();
-        Page<EntityUserRelation> result = relationRepository.findFriends(
+        Page<EntityFriendship> result = friendshipRepository.findByUserId(
                 user.getId(), PageRequest.of(page, size));
-        return toPageResponse(result);
+                
+        List<DtoFriendInfo> content = result.getContent()
+                .stream()
+                .map(this::toFriendInfo)
+                .toList();
+
+        return PageResponse.<DtoFriendInfo>builder()
+                .content(content)
+                .number(result.getNumber())
+                .size(result.getSize())
+                .totalElement(result.getTotalElements())
+                .totalPages(result.getTotalPages())
+                .first(result.isFirst())
+                .last(result.isLast())
+                .build();
     }
 
     /** Returns incoming pending friend requests for the authenticated user. */
@@ -280,35 +322,37 @@ public class ServiceRelation {
         User target = findUser(targetUserId);
 
         // Social counts
-        long friendCount   = relationRepository.countFriends(targetUserId);
+        long friendCount   = friendshipRepository.countByUserId(targetUserId);
         long followersCount = relationRepository.countByAddresseeIdAndRelationType(targetUserId, RelationType.FOLLOW);
         long followingCount = relationRepository.countByRequesterIdAndRelationType(targetUserId, RelationType.FOLLOW);
 
         // Relation context: current user → target
-        boolean isFriend = false;
+        boolean isFriend = friendshipRepository.existsByUserIdAndFriendId(currentUser.getId(), targetUserId);
         RelationStatus friendRequestStatus = null;
         Long pendingFriendRequestId = null;
         boolean isFollowing = false;
         boolean isFollowedByTarget = false;
 
-        // Check friendship (request may be in either direction)
-        var frForward = relationRepository.findByRequesterIdAndAddresseeIdAndRelationType(
-                currentUser.getId(), targetUserId, RelationType.FRIEND_REQUEST);
-        var frReverse = relationRepository.findByRequesterIdAndAddresseeIdAndRelationType(
-                targetUserId, currentUser.getId(), RelationType.FRIEND_REQUEST);
+        // Check friend request status only if they are not friends
+        if (!isFriend) {
+            var frForward = relationRepository.findByRequesterIdAndAddresseeIdAndRelationType(
+                    currentUser.getId(), targetUserId, RelationType.FRIEND_REQUEST);
+            var frReverse = relationRepository.findByRequesterIdAndAddresseeIdAndRelationType(
+                    targetUserId, currentUser.getId(), RelationType.FRIEND_REQUEST);
 
-        if (frForward.isPresent()) {
-            friendRequestStatus = frForward.get().getStatus();
-            isFriend = RelationStatus.ACCEPTED.equals(friendRequestStatus);
-            if (RelationStatus.PENDING.equals(friendRequestStatus)) {
-                pendingFriendRequestId = frForward.get().getId();
+            if (frForward.isPresent()) {
+                friendRequestStatus = frForward.get().getStatus();
+                if (RelationStatus.PENDING.equals(friendRequestStatus)) {
+                    pendingFriendRequestId = frForward.get().getId();
+                }
+            } else if (frReverse.isPresent()) {
+                friendRequestStatus = frReverse.get().getStatus();
+                if (RelationStatus.PENDING.equals(friendRequestStatus)) {
+                    pendingFriendRequestId = frReverse.get().getId();
+                }
             }
-        } else if (frReverse.isPresent()) {
-            friendRequestStatus = frReverse.get().getStatus();
-            isFriend = RelationStatus.ACCEPTED.equals(friendRequestStatus);
-            if (RelationStatus.PENDING.equals(friendRequestStatus)) {
-                pendingFriendRequestId = frReverse.get().getId();
-            }
+        } else {
+            friendRequestStatus = RelationStatus.ACCEPTED;
         }
 
         isFollowing = relationRepository.existsByRequesterIdAndAddresseeIdAndRelationType(
@@ -402,6 +446,20 @@ public class ServiceRelation {
             throw new IllegalStateException("This friend request is no longer pending.");
         }
     }
+    
+    private DtoFriendInfo toFriendInfo(EntityFriendship f) {
+        User friend = f.getFriend();
+        byte[] profilePic = null;
+        if (fileStorage.hasProfilePic(friend.getId())) {
+            profilePic = fileStorage.loadProfilePic(friend.getId());
+        }
+        return DtoFriendInfo.builder()
+                .id(friend.getId())
+                .fullName(friend.getFullName())
+                .email(friend.getEmail())
+                .profilePic(profilePic)
+                .build();
+    }
 
     private DtoRelationResponse toRelationResponse(EntityUserRelation r) {
         return DtoRelationResponse.builder()
@@ -437,28 +495,30 @@ public class ServiceRelation {
         Long currentId = currentUser.getId();
         Long targetId  = target.getId();
 
-        // Check friendship (request in either direction)
-        boolean isFriend = false;
+        // Check friendship
+        boolean isFriend = friendshipRepository.existsByUserIdAndFriendId(currentId, targetId);
         RelationStatus friendRequestStatus = null;
         Long pendingFriendRequestId = null;
 
-        var frForward = relationRepository.findByRequesterIdAndAddresseeIdAndRelationType(
-                currentId, targetId, RelationType.FRIEND_REQUEST);
-        var frReverse = relationRepository.findByRequesterIdAndAddresseeIdAndRelationType(
-                targetId, currentId, RelationType.FRIEND_REQUEST);
-
-        if (frForward.isPresent()) {
-            friendRequestStatus = frForward.get().getStatus();
-            isFriend = RelationStatus.ACCEPTED.equals(friendRequestStatus);
-            if (RelationStatus.PENDING.equals(friendRequestStatus)) {
-                pendingFriendRequestId = frForward.get().getId();
+        if (!isFriend) {
+            var frForward = relationRepository.findByRequesterIdAndAddresseeIdAndRelationType(
+                    currentId, targetId, RelationType.FRIEND_REQUEST);
+            var frReverse = relationRepository.findByRequesterIdAndAddresseeIdAndRelationType(
+                    targetId, currentId, RelationType.FRIEND_REQUEST);
+    
+            if (frForward.isPresent()) {
+                friendRequestStatus = frForward.get().getStatus();
+                if (RelationStatus.PENDING.equals(friendRequestStatus)) {
+                    pendingFriendRequestId = frForward.get().getId();
+                }
+            } else if (frReverse.isPresent()) {
+                friendRequestStatus = frReverse.get().getStatus();
+                if (RelationStatus.PENDING.equals(friendRequestStatus)) {
+                    pendingFriendRequestId = frReverse.get().getId();
+                }
             }
-        } else if (frReverse.isPresent()) {
-            friendRequestStatus = frReverse.get().getStatus();
-            isFriend = RelationStatus.ACCEPTED.equals(friendRequestStatus);
-            if (RelationStatus.PENDING.equals(friendRequestStatus)) {
-                pendingFriendRequestId = frReverse.get().getId();
-            }
+        } else {
+            friendRequestStatus = RelationStatus.ACCEPTED;
         }
 
         boolean isFollowing = relationRepository.existsByRequesterIdAndAddresseeIdAndRelationType(
@@ -480,4 +540,3 @@ public class ServiceRelation {
                 .build();
     }
 }
-

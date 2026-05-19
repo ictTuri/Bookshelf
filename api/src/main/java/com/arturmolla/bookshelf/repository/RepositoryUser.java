@@ -33,13 +33,8 @@ public interface RepositoryUser extends JpaRepository<User, Long> {
                OR LOWER(u.email)                              LIKE LOWER(CONCAT('%', :query, '%'))
               )
               AND NOT EXISTS (
-                  SELECT r FROM EntityUserRelation r
-                  WHERE r.relationType = com.arturmolla.bookshelf.model.enums.RelationType.FRIEND_REQUEST
-                    AND r.status       = com.arturmolla.bookshelf.model.enums.RelationStatus.ACCEPTED
-                    AND (
-                        (r.requester.id = :currentUserId AND r.addressee.id = u.id)
-                     OR (r.requester.id = u.id           AND r.addressee.id = :currentUserId)
-                    )
+                  SELECT f FROM EntityFriendship f
+                  WHERE f.user.id = :currentUserId AND f.friend.id = u.id
               )
             ORDER BY u.firstname ASC, u.lastname ASC
             """)

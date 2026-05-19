@@ -25,6 +25,7 @@ public class ServiceAdmin {
     private final RepositoryToken repositoryToken;
     private final RepositoryNotification repositoryNotification;
     private final RepositoryUserRelation repositoryUserRelation;
+    private final RepositoryFriendship repositoryFriendship;
     private final RepositoryPostComment repositoryPostComment;
     private final RepositoryPostLike repositoryPostLike;
     private final RepositoryPostShare repositoryPostShare;
@@ -157,6 +158,7 @@ public class ServiceAdmin {
 
         // 3. Friend / follow relations on both sides
         repositoryUserRelation.deleteAllInvolvingUser(id);
+        repositoryFriendship.deleteAllInvolvingUser(id);
 
         // 4. Social activity made by this user (across ALL posts, not just their own)
         repositoryPostComment.deleteAllByAuthorId(id);

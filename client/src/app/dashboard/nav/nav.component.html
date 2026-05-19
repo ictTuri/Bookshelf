@@ -92,7 +92,6 @@
                         <i class="fas" [ngClass]="getNotifIcon(n.type)"></i>
                       </div>
                       <div class="notif-body">
-                        <span class="notif-source">Notification from {{ getNotifDisplay(n).source }}</span>
                         <span class="notif-message">{{ getNotifDisplay(n).summary }}</span>
                         <span class="notif-time">{{ timeAgo(n.createdAt) }}</span>
                       </div>
@@ -139,11 +138,18 @@
                 <ul class="conversation-list">
                   @for (conv of conversations; track conv.conversationId) {
                     <li [class.unread]="conv.unreadCount > 0" [routerLink]="['/messages']" [queryParams]="{ friendId: conv.friendId }" (click)="showMessages = false">
-                      <div class="conv-avatar">
-                        <i class="fas fa-user-circle"></i>
+                      <div class="conv-avatar-container">
+                        @if (conv.friendProfilePic) {
+                          <img [src]="'data:image/jpeg;base64,' + conv.friendProfilePic" [alt]="conv.friendName" class="conv-avatar">
+                        } @else {
+                          <div class="conv-initials">{{ getConversationInitials(conv) }}</div>
+                        }
                       </div>
                       <div class="conv-body">
-                        <span class="conv-name">{{ conv.friendName }}</span>
+                        <div class="conv-header">
+                          <span class="conv-name">{{ conv.friendName }}</span>
+                          <span class="conv-email">{{ conv.friendEmail }}</span>
+                        </div>
                         <span class="conv-preview">{{ conv.lastMessagePreview || 'No messages yet' }}</span>
                       </div>
                       @if (conv.unreadCount > 0) {

@@ -23,6 +23,8 @@ public class DtoConversationResponse {
     /** The other participant (not the caller). */
     private Long friendId;
     private String friendName;
+    private String friendEmail;
+    private byte[] friendProfilePic;
 
     /** Preview text of the most-recent message, or {@code null} if no messages yet. */
     private String lastMessagePreview;
@@ -31,4 +33,3 @@ public class DtoConversationResponse {
     /** Count of unread messages sent by the friend to the caller. */
     private long unreadCount;
 }
-

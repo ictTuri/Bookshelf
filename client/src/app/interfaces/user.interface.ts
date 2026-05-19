@@ -54,3 +54,10 @@ export interface UpdateProfileRequest {
   bio?: string;
   location?: string;
 }
+
+export interface UserSummary {
+  id: number;
+  fullName: string;
+  email: string;
+  profilePic?: string | null; // base64 string
+}

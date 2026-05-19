@@ -128,73 +128,148 @@
   min-height: 0;
   list-style: none;
   margin: 0;
-  padding: 6px;
+  padding: 4px;
   overflow-y: auto;
 }
 
 .conversation-item {
-  display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 10px;
-  border-radius: 10px;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease;
+  transition: all 0.2s ease;
+  margin-bottom: 0;
+  position: relative;
 
   &:hover {
     background: #f6f9fc;
-    transform: translateY(-1px);
+
+    .btn-view-profile {
+      opacity: 1;
+    }
   }
 
   &.active {
     background: #eef5ff;
+    
+    .conversation-name { color: #1976D2; }
   }
 }
 
-.conversation-avatar {
-  i {
-    font-size: 1.35rem;
-    color: #8296ab;
-  }
+.conversation-avatar-container {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.conversation-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.conversation-initials {
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
 }
 
 .conversation-body {
+  flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
-.conversation-name,
-.conversation-preview {
+.conversation-name {
   margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #2c3e50;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.1;
+}
+
+.conversation-email {
+  margin: 5px 0 5px;
+  font-size: 0.68rem;
+  color: #8aa3c1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.conversation-name {
-  font-size: 0.86rem;
-  font-weight: 600;
-  color: #2b3b4c;
+.conversation-preview {
+  margin: 0;
+  font-size: 0.68rem;
+  color: #8aa3c1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.conversation-preview {
-  margin-top: 2px;
-  font-size: 0.76rem;
-  color: #7f8d9b;
+.conversation-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.btn-view-profile {
+  opacity: 0.7;
+  transform: scale(1);
+  background: none;
+  border: none;
+  color: #1976D2;
+  cursor: pointer;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  border-radius: 50%;
+
+  &:hover {
+    opacity: 1 !important;
+    background: rgba(25, 118, 210, 0.1);
+    transform: scale(1.1) !important;
+  }
 }
 
 .conversation-unread {
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 999px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 7px;
   background: #e53935;
   color: #fff;
-  font-size: 0.66rem;
+  font-size: 0.58rem;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  &--collapsed {
+    position: absolute;
+    top: 3px;
+    right: 6px;
+  }
 }
 
 .chat-panel {
@@ -206,16 +281,54 @@
 .chat-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
+  gap: 12px;
+  padding: 12px 16px;
   border-bottom: 1px solid #eef2f6;
-  color: #243445;
-  font-weight: 600;
+  background: #fff;
+  flex-shrink: 0;
+}
 
-  i {
-    color: #8093a7;
-    font-size: 1.2rem;
-  }
+.chat-friend-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.chat-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chat-initials {
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.chat-friend-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.chat-friend-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  line-height: 1.2;
+}
+
+.chat-friend-email {
+  font-size: 0.72rem;
+  color: #8aa3c1;
 }
 
 .messages-empty {

@@ -5,6 +5,7 @@ import {
   DtoUserSearchResult,
   RelationStatus
 } from '../../interfaces/relation.interface';
+import { UserSummary } from '../../interfaces/user.interface';
 import { RelationService } from '../../service/relation/relation.service';
 import { getApiErrorMessage } from '../../service/error/api-error.util';
 
@@ -28,7 +29,7 @@ export class FriendsComponent implements OnInit {
   incomingRequests: DtoRelationResponse[] = [];
   incomingLoading = false;
 
-  friends: DtoRelationResponse[] = [];
+  friends: UserSummary[] = [];
   friendsLoading = false;
 
   actionMessage = '';
@@ -154,14 +155,9 @@ export class FriendsComponent implements OnInit {
     });
   }
 
-  removeFriend(relation: DtoRelationResponse): void {
-    const targetUserId = this.getOtherUserId(relation);
-    if (!targetUserId) {
-      return;
-    }
-
+  removeFriend(friend: UserSummary): void {
     this.clearActionMessage();
-    this.relationService.removeFriend(targetUserId).subscribe({
+    this.relationService.removeFriend(friend.id).subscribe({
       next: () => {
         this.setSuccess('Friend removed.');
         this.loadFriends();
@@ -200,48 +196,12 @@ export class FriendsComponent implements OnInit {
     });
   }
 
-  getOtherUserName(relation: DtoRelationResponse): string {
-    const currentUser = this.authState.getCurrentUser();
-    const myId = this.currentUserId;
-    const myName = currentUser?.fullName;
-
-    if (myId) {
-      return myId === relation.addresseeId
-        ? relation.requesterFullName
-        : relation.addresseeFullName;
-    }
-
-    if (myName) {
-      return myName === relation.addresseeFullName
-        ? relation.requesterFullName
-        : relation.addresseeFullName;
-    }
-
-    return relation.addresseeFullName || relation.requesterFullName || 'Friend';
-  }
-
-  getOtherUserId(relation: DtoRelationResponse): number | null {
-    const currentUser = this.authState.getCurrentUser();
-    const myId = this.currentUserId;
-    const myName = currentUser?.fullName;
-
-    if (myId) {
-      return myId === relation.addresseeId
-        ? relation.requesterId
-        : relation.addresseeId;
-    }
-
-    if (myName) {
-      return myName === relation.addresseeFullName
-        ? relation.requesterId
-        : relation.addresseeId;
-    }
-
-    return relation.addresseeId || relation.requesterId || null;
-  }
-
-  getChatFriendId(relation: DtoRelationResponse): number | null {
-    return this.getOtherUserId(relation);
+  getUserInitials(fullName: string | undefined | null): string {
+    if (!fullName) return '?';
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length === 0) return '?';
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
   }
 
   hasPendingRequest(status: RelationStatus | null): boolean {
