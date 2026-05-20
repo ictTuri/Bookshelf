@@ -143,10 +143,23 @@ jobs:
           } | ssh hetzner "cat > /opt/bookshelf/.env"
           ssh hetzner "cd /opt/bookshelf && docker compose up -d api mail-dev"
 
-      - name: Start Angular app
+      - name: Start Angular app (SSR)
         run: |
-          ssh hetzner "nohup node /var/www/bookshelf/client/server/server.mjs >> /var/www/bookshelf/app.log 2>&1 &"
+          ssh hetzner bash -s << 'EOF'
+          PID=$(lsof -t -i:4000)
+          if [ ! -z "$PID" ]; then
+            echo "Stopping old Angular SSR instance (PID: $PID)..."
+            kill -9 $PID
+          fi
 
+          cd /var/www/bookshelf
+          
+          echo "Starting new Angular SSR instance..."
+          nohup node server/server.mjs >> app.log 2>&1 &
+          
+          sleep 2
+          curl -I http://localhost:4000
+          EOF
       # ── Configure nginx reverse proxy ─────────────────────────────────────────
       - name: Configure nginx
         run: |
