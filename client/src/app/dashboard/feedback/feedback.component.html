@@ -1,42 +1,45 @@
 <div class="feedback-container">
-  <!-- Header Section -->
-  <div class="feedback-header">
-    <div class="header-content">
-      <h1>Feedback & Suggestions</h1>
-      <p>Share your ideas and help us improve the Bookshelf app</p>
-    </div>
-    @if (isLoggedIn) {
-      <button class="btn-add" (click)="openAddModal()">
-        <i class="fas fa-plus"></i>
-        Add Feedback
-      </button>
-    }
-  </div>
-
-  <!-- Tab and Sort Controls -->
-  <div class="controls">
-    <div class="filters">
-      <button
-        [class.active]="activeTab === 'all'"
-        (click)="switchTab('all')">
-        All Feedback
-      </button>
+  <!-- Sticky Header Wrapper -->
+  <div class="sticky-header-wrapper">
+    <!-- Header Section -->
+    <div class="feedback-header">
+      <div class="header-content">
+        <h1>Feedback & Suggestions</h1>
+        <p>Share your ideas and help us improve the Bookshelf app</p>
+      </div>
       @if (isLoggedIn) {
-        <button
-          [class.active]="activeTab === 'my'"
-          (click)="switchTab('my')">
-          My Feedback
+        <button class="btn-add" (click)="openAddModal()">
+          <i class="fas fa-plus"></i>
+          Add Feedback
         </button>
       }
     </div>
 
-    <div class="sort">
-      <label for="sort">Sort by:</label>
-      <select id="sort" [(ngModel)]="sortBy" (change)="onSortChange(sortBy)">
-        <option value="newest">Newest</option>
-        <option value="most-upvoted">Most Upvoted</option>
-        <option value="most-comments">Most Comments</option>
-      </select>
+    <!-- Tab and Sort Controls -->
+    <div class="controls">
+      <div class="filters">
+        <button
+          [class.active]="activeTab === 'all'"
+          (click)="switchTab('all')">
+          All Feedback
+        </button>
+        @if (isLoggedIn) {
+          <button
+            [class.active]="activeTab === 'my'"
+            (click)="switchTab('my')">
+            My Feedback
+          </button>
+        }
+      </div>
+
+      <div class="sort">
+        <label for="sort">Sort by:</label>
+        <select id="sort" [(ngModel)]="sortBy" (change)="onSortChange(sortBy)">
+          <option value="newest">Newest</option>
+          <option value="most-upvoted">Most Upvoted</option>
+          <option value="most-comments">Most Comments</option>
+        </select>
+      </div>
     </div>
   </div>
 

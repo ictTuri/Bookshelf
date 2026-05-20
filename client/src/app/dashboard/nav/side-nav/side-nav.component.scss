@@ -1,22 +1,22 @@
-$accent: #1976D2;
-$accent-light: rgba(25, 118, 210, 0.10);
+$accent: var(--accent-color);
+$accent-light: var(--accent-light);
 $nav-width: 200px;
 $nav-collapsed-width: 54px;
 $transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
-// ── Side nav ─────────────────────────────────────────────────────────────
+// ── Side nav ──────────────────────────────────────────────────────────
 .side-nav {
   position: sticky;
   top: 92px;
   width: $nav-width;
   height: calc(100vh - 108px);
 
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--surface-transparent);
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--surface-border);
   border-radius: 16px;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.07), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  box-shadow: var(--card-shadow);
 
   display: flex;
   flex-direction: column;
@@ -26,7 +26,7 @@ $transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
   margin: 0 0 16px 12px;
 
-  transition: width $transition;
+  transition: width $transition, background-color 0.3s ease, border-color 0.3s ease;
 
   &.collapsed {
     width: $nav-collapsed-width;
@@ -50,6 +50,47 @@ $transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
+// ── Header (Toggle) ──────────────────────────────────────────────────────
+.side-nav-header {
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
+// ── Toggle button ────────────────────────────────────────────────────────
+.side-nav-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: all $transition;
+
+  i {
+    width: 20px;
+    text-align: center;
+    font-size: 0.9rem;
+    transition: transform $transition;
+  }
+
+  .side-nav-label {
+    transition: opacity $transition, width $transition;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  &:hover {
+    background: var(--accent-light);
+    color: var(--accent-color);
+  }
+}
+
 // ── Nav links container ──────────────────────────────────────────────────
 .side-nav-links {
   display: flex;
@@ -65,40 +106,29 @@ $transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   padding-bottom: 12px;
 }
 
-// ── Individual nav item ──────────────────────────────────────────────────
+// ── Nav Items ────────────────────────────────────────────────────────────
 .side-nav-item {
-  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 10px;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
   text-decoration: none;
-  color: #555;
-  border-radius: 10px;
-  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
   font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  transition: background $transition, color $transition, padding $transition;
-
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 20%;
-    height: 60%;
-    width: 3px;
-    background: $accent;
-    border-radius: 0 3px 3px 0;
-    opacity: 0;
-    transition: opacity $transition;
-  }
+  border-radius: 12px;
+  transition: all $transition;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  text-align: left;
 
   i {
-    font-size: 0.88rem;
-    flex-shrink: 0;
-    width: 18px;
+    width: 20px;
     text-align: center;
+    font-size: 1.05rem;
   }
 
   .side-nav-label {
@@ -108,77 +138,35 @@ $transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   &:hover {
-    background: rgba(0, 0, 0, 0.04);
-    color: $accent;
+    background: var(--accent-light);
+    color: var(--accent-color);
   }
 
   &.active {
-    background: $accent-light;
-    color: $accent;
+    background: var(--accent-color);
+    color: white;
     font-weight: 600;
-
-    &::before {
-      opacity: 1;
-    }
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.25);
   }
 }
 
-// ── Divider ──────────────────────────────────────────────────────────────
+.theme-toggle {
+  margin-top: 4px;
+  
+  i {
+    color: var(--accent-color);
+  }
+}
+
 .side-nav-divider {
   height: 1px;
-  background: rgba(0, 0, 0, 0.06);
-  margin: 6px 4px;
+  background: var(--divider-color);
+  margin: 8px 10px;
 }
 
-// ── Horizontal rule (above admin) ────────────────────────────────────────
 .side-nav-hr {
-  border: none;
+  border: 0;
   height: 1px;
-  background: rgba(0, 0, 0, 0.08);
-  margin: 12px 4px 10px;
-}
-
-// ── Footer ───────────────────────────────────────────────────────────────
-.side-nav-footer {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-  flex-shrink: 0;
-}
-
-// ── Toggle button ────────────────────────────────────────────────────────
-.side-nav-toggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 10px;
-  width: 100%;
-  background: transparent;
-  border: none;
-  border-radius: 10px;
-  color: #888;
-  cursor: pointer;
-  font-size: 0.875rem;
-  white-space: nowrap;
-  overflow: hidden;
-  transition: background $transition, color $transition, padding $transition;
-
-  i {
-    font-size: 0.78rem;
-    flex-shrink: 0;
-    width: 18px;
-    text-align: center;
-    transition: transform $transition;
-  }
-
-  .side-nav-label {
-    transition: opacity $transition, width $transition;
-    overflow: hidden;
-    white-space: nowrap;
-  }
-
-  &:hover {
-    background: rgba(0, 0, 0, 0.04);
-    color: #444;
-  }
+  background: var(--divider-color);
+  margin: 8px 10px;
 }

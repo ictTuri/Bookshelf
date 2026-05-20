@@ -1,4 +1,4 @@
-﻿*,
+*,
 *::before,
 *::after {
   box-sizing: border-box;
@@ -8,32 +8,35 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  min-height: calc(100vh - 80px);
-  background: #f0f4f8;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg-color);
   padding: 40px 20px 60px;
+  transition: background-color 0.3s ease;
 }
 
 .register-card {
-  background: white;
+  background: var(--surface-color);
   border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(255,255,255,0.8) inset;
-  border: 1px solid rgba(25, 118, 210, 0.08);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--surface-border);
   width: 100%;
   max-width: 460px;
   padding: 40px 36px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .register-title {
   text-align: center;
   margin: 0 0 8px;
-  color: #1a1a2e;
+  color: var(--text-primary);
   font-size: 1.6rem;
   font-weight: 700;
 }
 
 .register-subtitle {
   text-align: center;
-  color: #777;
+  color: var(--text-secondary);
   font-size: 0.88rem;
   margin: 0 0 32px;
 }
@@ -52,44 +55,47 @@
     margin-bottom: 7px;
     font-size: 0.85rem;
     font-weight: 600;
-    color: #444;
+    color: var(--text-secondary);
   }
 
   .form-control {
     width: 100%;
     padding: 11px 14px;
-    border: 1.5px solid #e0e0e0;
+    border: 1.5px solid var(--surface-border);
     border-radius: 10px;
     font-size: 0.95rem;
     font-family: inherit;
-    color: #1a1a2e;
-    background: #fafbfc;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    color: var(--text-primary);
+    background: var(--bg-color);
+    transition: all 0.2s ease;
 
-    &::placeholder { color: #b0b0b0; }
+    &::placeholder { color: var(--text-muted); }
 
     &:focus {
       outline: none;
-      border-color: #1976D2;
-      box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
-      background: white;
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 3px var(--accent-light);
+      background: var(--surface-color);
     }
   }
 
   .error-message {
     margin-top: 5px;
     font-size: 0.78rem;
-    color: #d32f2f;
+    color: #ef4444;
   }
 }
 
 .form-actions {
   margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 
   .btn-register {
     width: 100%;
     padding: 12px;
-    background: #1976D2;
+    background: var(--accent-color);
     color: white;
     border: none;
     border-radius: 10px;
@@ -97,15 +103,41 @@
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
-    transition: background 0.2s, box-shadow 0.2s;
+    transition: all 0.2s ease;
 
     &:hover:not(:disabled) {
-      background: #1565c0;
-      box-shadow: 0 4px 14px rgba(25, 118, 210, 0.35);
+      background: var(--accent-hover);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
     }
 
     &:disabled {
-      background: #a0c0f8;
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .btn-back {
+    width: 100%;
+    padding: 12px;
+    background: var(--bg-color);
+    color: #ef4444;
+    border: 1.5px solid rgba(239, 68, 68, 0.2);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: #ef4444;
+    }
+
+    &:disabled {
+      opacity: 0.6;
       cursor: not-allowed;
     }
   }
@@ -119,7 +151,7 @@
     align-items: center;
     gap: 12px;
     margin-bottom: 18px;
-    color: #bbb;
+    color: var(--text-muted);
     font-size: 0.8rem;
 
     &::before,
@@ -127,7 +159,7 @@
       content: '';
       flex: 1;
       height: 1px;
-      background: #eee;
+      background: var(--divider-color);
     }
   }
 
@@ -149,10 +181,10 @@
   text-align: center;
   margin-top: 22px;
   font-size: 0.85rem;
-  color: #777;
+  color: var(--text-secondary);
 
   a {
-    color: #1976D2;
+    color: var(--accent-color);
     font-weight: 600;
     text-decoration: none;
     &:hover { text-decoration: underline; }

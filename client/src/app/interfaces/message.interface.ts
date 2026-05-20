@@ -31,7 +31,7 @@ export interface DtoConversationResponse {
   friendId: number;
   friendName: string;
   friendEmail: string;
-  friendProfilePic: string | null; // base64 string
+  friendProfilePic: string | null;
   lastMessagePreview: string | null;
   lastMessageAt: Date;
   unreadCount: number;
