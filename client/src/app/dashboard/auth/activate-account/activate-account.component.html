@@ -36,6 +36,9 @@
               <span>Activate Account</span>
             }
           </button>
+          <button type="button" class="btn-back" routerLink="/" [disabled]="isLoading">
+            Go Back
+          </button>
         </div>
         <div class="resend-area">
           @if (!canResend) {

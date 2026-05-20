@@ -2,8 +2,10 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #f0f2f5;
+  background: var(--bg-color);
   font-family: 'Poppins', sans-serif;
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 // ── Toolbar ──────────────────────────────────────────────────
@@ -11,11 +13,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(135deg, #64B5F6 0%, #1976D2 100%);
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-hover) 100%);
   padding: 0 20px;
   height: 52px;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 
   .toolbar-left {
     display: flex;
@@ -24,7 +26,7 @@
 
     .pdf-icon {
       font-size: 1.2rem;
-      color: rgba(255, 255, 255, 0.9);
+      color: rgba(255, 255, 255, 0.95);
     }
 
     .pdf-title {
@@ -88,7 +90,7 @@
   font-size: 0.9rem;
 
   .page-label {
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.9);
     font-weight: 500;
     font-size: 0.85rem;
   }
@@ -119,7 +121,7 @@
 
   .page-sep,
   .total-pages {
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.9);
     font-weight: 500;
   }
 }
@@ -133,6 +135,7 @@
   align-items: center;
   position: relative;
   padding: 0;
+  background: var(--bg-color);
 }
 
 .viewer-container {
@@ -146,6 +149,7 @@
     height: 100%;
     border: none;
     display: block;
+    background: white; // PDFs usually have white background, iframe covers it anyway
   }
 }
 .error-state,
@@ -157,7 +161,7 @@
   gap: 14px;
   flex: 1;
   padding: 60px 20px;
-  color: #6c757d;
+  color: var(--text-secondary);
   text-align: center;
 
   i {
@@ -174,7 +178,8 @@
   span {
     font-size: 0.85rem;
     code {
-      background: #e9ecef;
+      background: var(--surface-border);
+      color: var(--text-primary);
       padding: 2px 6px;
       border-radius: 4px;
       font-size: 0.82rem;
@@ -183,15 +188,15 @@
 }
 
 .error-state i {
-  color: #dc3545;
-  opacity: 0.7;
+  color: #ef4444;
+  opacity: 0.8;
 }
 
 .spinner {
   width: 42px;
   height: 42px;
-  border: 4px solid rgba(25, 118, 210, 0.15);
-  border-top-color: #1976D2;
+  border: 4px solid var(--accent-light);
+  border-top-color: var(--accent-color);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
