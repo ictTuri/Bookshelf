@@ -1,230 +1,241 @@
-<div class="app-container">
-  <nav class="top-nav">
-    <!-- Brand -->
-    <div class="nav-brand-wrapper">
-      <a class="nav-brand" routerLink="/" (click)="showNavMenu = false">
-        <i class="fas fa-book"></i>
-        <span>Bookshelf</span>
-      </a>
-      <button class="nav-menu-toggle" (click)="toggleNavMenu()" [class.active]="showNavMenu" aria-label="Navigation menu">
-        <i class="fas fa-chevron-down"></i>
-      </button>
-      @if (showNavMenu) {
-        <div class="nav-menu-dropdown">
-          @if (!(user$ | async)) {
-            <a routerLink="/about" routerLinkActive="active" class="nav-menu-item" (click)="showNavMenu = false">
-              <i class="fas fa-info-circle"></i>
-              <span>About</span>
-            </a>
-            <a routerLink="/feedback" routerLinkActive="active" class="nav-menu-item" (click)="showNavMenu = false">
-              <i class="fas fa-comment"></i>
-              <span>Feedback</span>
-            </a>
-          }
-        </div>
-      }
-    </div>
-
-    <!-- Centre links -->
-    <div class="nav-links">
-      @if (isBrowser && !(user$ | async)) {
-        <a routerLink="/about" routerLinkActive="active">
-          <i class="fas fa-info-circle"></i>
-          <span>About</span>
+<div class="app-container" [class.auth-layout]="isAuthRoute" [class.landing-layout]="isLandingPage">
+  @if (!isAuthRoute) {
+    <nav class="top-nav">
+      <!-- Brand -->
+      <div class="nav-brand-wrapper">
+        <a class="nav-brand" routerLink="/" (click)="showNavMenu = false">
+          <i class="fas fa-book"></i>
+          <span>Bookshelf</span>
         </a>
-        <a routerLink="/feedback" routerLinkActive="active">
-          <i class="fas fa-comment"></i>
-          <span>Feedback</span>
-        </a>
-      }
-    </div>
-
-    <!-- Right side -->
-    <div class="nav-right">
-      @if (user$ | async) {
-        <!-- Add Book -->
-        <button class="btn-add-book-nav" (click)="openAddBook()" title="Add Book">
-          <i class="fas fa-plus"></i>
-          <span>Add Book</span>
+        <button class="nav-menu-toggle" (click)="toggleNavMenu()" [class.active]="showNavMenu" aria-label="Navigation menu">
+          <i class="fas fa-chevron-down"></i>
         </button>
-
-        <!-- Notification Bell -->
-        <div class="notification-wrapper">
-          <button class="notification-btn" (click)="toggleNotifications()">
-            <i class="fas fa-bell"></i>
-            @if (unreadCount > 0) {
-              <span class="badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
-            }
-          </button>
-
-          @if (showNotifications) {
-            <div class="notification-dropdown">
-              <div class="dropdown-header">
-                <span>Notifications</span>
-                <div class="header-actions">
-                  @if (unreadCount > 0) {
-                    <button class="mark-read-btn" (click)="markAllRead()">Mark all read</button>
-                  }
-                  @if (notifications.length > 0) {
-                    <button class="clear-all-btn" (click)="clearAllNotifications()">Clear all</button>
-                  }
-                </div>
-              </div>
-              @if (notificationsLoading) {
-                <div class="dropdown-loading">
-                  <i class="fas fa-spinner fa-spin"></i>
-                </div>
-              }
-              @if (!notificationsLoading && notifications.length === 0) {
-                <div class="dropdown-empty">
-                  <i class="fas fa-bell-slash"></i>
-                  <p>No notifications yet</p>
-                </div>
-              }
-              @if (!notificationsLoading && notifications.length > 0) {
-                <ul class="notification-list">
-                  @for (n of notifications; track n) {
-                    <li
-                      [class.unread]="!n.read"
-                      [class.clickable]="n.referenceId"
-                      (click)="onNotifClick($event, n)">
-                      <div class="notif-icon-wrap">
-                        <i class="fas" [ngClass]="getNotifIcon(n.type)"></i>
-                      </div>
-                      <div class="notif-body">
-                        <span class="notif-message">{{ getNotifDisplay(n).summary }}</span>
-                        <span class="notif-time">{{ timeAgo(n.createdAt) }}</span>
-                      </div>
-                      <button class="notif-delete-btn" (click)="deleteNotification($event, n)" title="Dismiss">
-                        <i class="fas fa-times"></i>
-                      </button>
-                    </li>
-                  }
-                </ul>
-              }
-            </div>
-          }
-        </div>
-
-        <div class="message-wrapper">
-          <button class="message-btn" (click)="toggleMessages()" title="Messages">
-            <i class="fas fa-comment-dots"></i>
-            @if (unreadConversationsCount > 0) {
-              <span class="badge">{{ unreadConversationsCount > 99 ? '99+' : unreadConversationsCount }}</span>
-            }
-          </button>
-
-          @if (showMessages) {
-            <div class="message-dropdown">
-              <div class="dropdown-header">
-                <span>Messages</span>
-              </div>
-
-              @if (conversationsLoading) {
-                <div class="dropdown-loading">
-                  <i class="fas fa-spinner fa-spin"></i>
-                </div>
-              }
-
-              @if (!conversationsLoading && conversations.length === 0) {
-                <div class="dropdown-empty">
-                  <i class="fas fa-comments"></i>
-                  <p>No direct messages yet</p>
-                  <small>Use Friends to connect and start conversations.</small>
-                </div>
-              }
-
-              @if (!conversationsLoading && conversations.length > 0) {
-                <ul class="conversation-list">
-                  @for (conv of conversations; track conv.conversationId) {
-                    <li [class.unread]="conv.unreadCount > 0" [routerLink]="['/messages']" [queryParams]="{ friendId: conv.friendId }" (click)="showMessages = false">
-                      <div class="conv-avatar-container">
-                        @if (conv.friendProfilePic) {
-                          <img [src]="'data:image/jpeg;base64,' + conv.friendProfilePic" [alt]="conv.friendName" class="conv-avatar">
-                        } @else {
-                          <div class="conv-initials">{{ getConversationInitials(conv) }}</div>
-                        }
-                      </div>
-                      <div class="conv-body">
-                        <div class="conv-header">
-                          <span class="conv-name">{{ conv.friendName }}</span>
-                          <span class="conv-email">{{ conv.friendEmail }}</span>
-                        </div>
-                        <span class="conv-preview">{{ conv.lastMessagePreview || 'No messages yet' }}</span>
-                      </div>
-                      @if (conv.unreadCount > 0) {
-                        <span class="conv-unread-badge">{{ conv.unreadCount }}</span>
-                      }
-                    </li>
-                  }
-                </ul>
-              }
-
-              <div class="message-actions">
-                <a routerLink="/friends" (click)="showMessages = false" class="btn-new-message">
-                  <i class="fas fa-plus"></i> Send a new message
-                </a>
-                <a class="view-all-link" routerLink="/messages" (click)="showMessages = false">View all</a>
-              </div>
-            </div>
-          }
-        </div>
-      }
-
-      <!-- Profile / Login -->
-      @if (isBrowser) {
-        @if (user$ | async; as user) {
-        <div class="profile-wrapper">
-          <button class="profile-avatar-link" (click)="toggleProfileMenu()" [title]="user.fullName || user.email">
-            @if (profilePictureUrl) {
-              <img [src]="profilePictureUrl" [alt]="user.fullName || user.email" class="nav-avatar nav-avatar--img">
-            }
-            @if (!profilePictureUrl) {
-              <div class="nav-avatar">{{ getInitials(user.fullName, user.email) }}</div>
-            }
-          </button>
-
-          @if (showProfileMenu) {
-            <div class="profile-dropdown">
-              <div class="profile-dropdown-header">
-                @if (profilePictureUrl) {
-                  <img [src]="profilePictureUrl" [alt]="user.fullName || user.email" class="nav-avatar nav-avatar--lg nav-avatar--img">
-                }
-                @if (!profilePictureUrl) {
-                  <div class="nav-avatar nav-avatar--lg">{{ getInitials(user.fullName, user.email) }}</div>
-                }
-                <div class="profile-dropdown-info">
-                  <span class="profile-name">{{ getDisplayName(user) }}</span>
-                  <span class="profile-email">{{ user.email }}</span>
-                </div>
-              </div>
-              <div class="profile-dropdown-divider"></div>
-              <a routerLink="/profile" class="profile-dropdown-item" (click)="showProfileMenu = false">
-                <i class="fas fa-user"></i>
-                <span>My Profile</span>
+        @if (showNavMenu) {
+          <div class="nav-menu-dropdown">
+            @if (!(user$ | async)) {
+              <a routerLink="/about" routerLinkActive="active" class="nav-menu-item" (click)="showNavMenu = false">
+                <i class="fas fa-info-circle"></i>
+                <span>About</span>
               </a>
-              <div class="profile-dropdown-divider"></div>
-              <button class="profile-dropdown-item profile-dropdown-item--danger" (click)="logout()">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-              </button>
-            </div>
-          }
-        </div>
-      } @else {
-          <div class="auth-links">
-            <a routerLink="/auth/login" class="btn-login">
-              <i class="fas fa-sign-in-alt"></i>
-              Login
-            </a>
+              <a routerLink="/feedback" routerLinkActive="active" class="nav-menu-item" (click)="showNavMenu = false">
+                <i class="fas fa-comment"></i>
+                <span>Feedback</span>
+              </a>
+            }
           </div>
         }
-      }
-    </div>
-  </nav>
+      </div>
+
+      <!-- Centre links -->
+      <div class="nav-links">
+        @if (isBrowser && !(user$ | async)) {
+          <a routerLink="/about" routerLinkActive="active">
+            <i class="fas fa-info-circle"></i>
+            <span>About</span>
+          </a>
+          <a routerLink="/feedback" routerLinkActive="active">
+            <i class="fas fa-comment"></i>
+            <span>Feedback</span>
+          </a>
+        }
+      </div>
+
+      <!-- Right side -->
+      <div class="nav-right">
+        @if (user$ | async) {
+          <!-- Add Book -->
+          <button class="btn-add-book-nav" (click)="openAddBook()" title="Add Book">
+            <i class="fas fa-plus"></i>
+            <span>Add Book</span>
+          </button>
+
+          <!-- Notification Bell -->
+          <div class="notification-wrapper">
+            <button class="notification-btn" (click)="toggleNotifications()">
+              <i class="fas fa-bell"></i>
+              @if (unreadCount > 0) {
+                <span class="badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+              }
+            </button>
+
+            @if (showNotifications) {
+              <div class="notification-dropdown">
+                <div class="dropdown-header">
+                  <span>Notifications</span>
+                  <div class="header-actions">
+                    @if (unreadCount > 0) {
+                      <button class="mark-read-btn" (click)="markAllRead()">Mark all read</button>
+                    }
+                    @if (notifications.length > 0) {
+                      <button class="clear-all-btn" (click)="clearAllNotifications()">Clear all</button>
+                    }
+                  </div>
+                </div>
+                @if (notificationsLoading) {
+                  <div class="dropdown-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                  </div>
+                }
+                @if (!notificationsLoading && notifications.length === 0) {
+                  <div class="dropdown-empty">
+                    <i class="fas fa-bell-slash"></i>
+                    <p>No notifications yet</p>
+                  </div>
+                }
+                @if (!notificationsLoading && notifications.length > 0) {
+                  <ul class="notification-list">
+                    @for (n of notifications; track n) {
+                      <li
+                        [class.unread]="!n.read"
+                        [class.clickable]="n.referenceId"
+                        (click)="onNotifClick($event, n)">
+                        <div class="notif-icon-wrap">
+                          <i class="fas" [ngClass]="getNotifIcon(n.type)"></i>
+                        </div>
+                        <div class="notif-body">
+                          <span class="notif-message">{{ getNotifDisplay(n).summary }}</span>
+                          <span class="notif-time">{{ timeAgo(n.createdAt) }}</span>
+                        </div>
+                        <button class="notif-delete-btn" (click)="deleteNotification($event, n)" title="Dismiss">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="message-wrapper">
+            <button class="message-btn" (click)="toggleMessages()" title="Messages">
+              <i class="fas fa-comment-dots"></i>
+              @if (unreadConversationsCount > 0) {
+                <span class="badge">{{ unreadConversationsCount > 99 ? '99+' : unreadConversationsCount }}</span>
+              }
+            </button>
+
+            @if (showMessages) {
+              <div class="message-dropdown">
+                <div class="dropdown-header">
+                  <span>Messages</span>
+                </div>
+
+                @if (conversationsLoading) {
+                  <div class="dropdown-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                  </div>
+                }
+
+                @if (!conversationsLoading && conversations.length === 0) {
+                  <div class="dropdown-empty">
+                    <i class="fas fa-comments"></i>
+                    <p>No direct messages yet</p>
+                    <small>Use Friends to connect and start conversations.</small>
+                  </div>
+                }
+
+                @if (!conversationsLoading && conversations.length > 0) {
+                  <ul class="conversation-list">
+                    @for (conv of conversations; track conv.conversationId) {
+                      <li [class.unread]="conv.unreadCount > 0" [routerLink]="['/messages']" [queryParams]="{ friendId: conv.friendId }" (click)="showMessages = false">
+                        <div class="conv-avatar-container">
+                          @if (conv.friendProfilePic) {
+                            <img [src]="'data:image/jpeg;base64,' + conv.friendProfilePic" [alt]="conv.friendName" class="conv-avatar">
+                          } @else {
+                            <div class="conv-initials">{{ getConversationInitials(conv) }}</div>
+                          }
+                        </div>
+                        <div class="conv-body">
+                          <div class="conv-header">
+                            <span class="conv-name">{{ conv.friendName }}</span>
+                            <span class="conv-email">{{ conv.friendEmail }}</span>
+                          </div>
+                          <span class="conv-preview">{{ conv.lastMessagePreview || 'No messages yet' }}</span>
+                        </div>
+                        @if (conv.unreadCount > 0) {
+                          <span class="conv-unread-badge">{{ conv.unreadCount }}</span>
+                        }
+                      </li>
+                    }
+                  </ul>
+                }
+
+                <div class="message-actions">
+                  <a routerLink="/friends" (click)="showMessages = false" class="btn-new-message">
+                    <i class="fas fa-plus"></i> Send a new message
+                  </a>
+                  <a class="view-all-link" routerLink="/messages" (click)="showMessages = false">View all</a>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Profile / Login -->
+        @if (isBrowser) {
+          @if (user$ | async; as user) {
+            <div class="profile-wrapper">
+              <button class="profile-avatar-link" (click)="toggleProfileMenu()" [title]="user.fullName || user.email">
+                @if (profilePictureUrl) {
+                  <img [src]="profilePictureUrl" [alt]="user.fullName || user.email" class="nav-avatar nav-avatar--img">
+                }
+                @if (!profilePictureUrl) {
+                  <div class="nav-avatar">{{ getInitials(user.fullName, user.email) }}</div>
+                }
+              </button>
+
+              @if (showProfileMenu) {
+                <div class="profile-dropdown">
+                  <div class="profile-dropdown-header">
+                    @if (profilePictureUrl) {
+                      <img [src]="profilePictureUrl" [alt]="user.fullName || user.email" class="nav-avatar nav-avatar--lg nav-avatar--img">
+                    }
+                    @if (!profilePictureUrl) {
+                      <div class="nav-avatar nav-avatar--lg">{{ getInitials(user.fullName, user.email) }}</div>
+                    }
+                    <div class="profile-dropdown-info">
+                      <span class="profile-name">{{ getDisplayName(user) }}</span>
+                      <span class="profile-email">{{ user.email }}</span>
+                    </div>
+                  </div>
+                  <div class="profile-dropdown-divider"></div>
+                  <a routerLink="/profile" class="profile-dropdown-item" (click)="showProfileMenu = false">
+                    <i class="fas fa-user"></i>
+                    <span>My Profile</span>
+                  </a>
+                  <div class="profile-dropdown-divider"></div>
+                  <button class="profile-dropdown-item profile-dropdown-item--danger" (click)="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                  </button>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="auth-links">
+              <button class="nav-theme-toggle" (click)="toggleTheme()" [title]="(currentTheme$ | async) === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+                @if ((currentTheme$ | async) === 'dark') {
+                  <i class="fas fa-sun"></i>
+                } @else {
+                  <i class="fas fa-moon"></i>
+                }
+              </button>
+              <a routerLink="/auth/login" class="btn-login">
+                <i class="fas fa-sign-in-alt"></i>
+                Login
+              </a>
+            </div>
+          }
+        }
+      </div>
+    </nav>
+  }
 
   <div class="body-row">
-    <app-side-nav></app-side-nav>
+    @if (!isAuthRoute) {
+      <app-side-nav></app-side-nav>
+    }
     <main class="main-content">
       <router-outlet></router-outlet>
     </main>

@@ -6,6 +6,8 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 24px 16px;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .friends-wrapper {
@@ -16,17 +18,19 @@
 
 .friends-card {
   flex: 1;
-  background: #fff;
+  background: var(--surface-color);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--surface-border);
   min-width: 0;
+  transition: background-color 0.3s ease;
 }
 
 .friends-header h2 {
   margin: 0 0 1rem;
   font-size: 1.2rem;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .friends-message {
@@ -36,27 +40,27 @@
   font-size: 0.9rem;
 
   &.success {
-    background: #e8f7ee;
-    border: 1px solid #bde8cc;
-    color: #1f7a3f;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid #10b981;
+    color: #10b981;
   }
 
   &.error {
-    background: #feeeee;
-    border: 1px solid #f5caca;
-    color: #b23232;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid #ef4444;
+    color: #ef4444;
   }
 }
 
 .friends-block {
-  border-top: 1px solid #ececec;
+  border-top: 1px solid var(--divider-color);
   padding-top: 1rem;
   margin-top: 1rem;
 
   h3 {
     margin: 0 0 0.75rem;
     font-size: 1rem;
-    color: #384c5f;
+    color: var(--text-primary);
   }
 }
 
@@ -67,19 +71,24 @@
 
   input {
     flex: 1;
-    border: 1px solid #d8dee4;
+    background: var(--bg-color);
+    color: var(--text-primary);
+    border: 1px solid var(--surface-border);
     border-radius: 8px;
     padding: 0.55rem 0.7rem;
     font-size: 0.9rem;
+    &:focus { outline: none; border-color: var(--accent-color); }
   }
 
   button {
     border: none;
     border-radius: 8px;
-    background: #667eea;
+    background: var(--accent-color);
     color: #fff;
     padding: 0.55rem 0.8rem;
     cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: var(--accent-hover); }
   }
 }
 
@@ -92,7 +101,8 @@
     display: flex;
     justify-content: space-between;
     gap: 0.75rem;
-    border: 1px solid #edf1f4;
+    border: 1px solid var(--surface-border);
+    background: var(--bg-color);
     border-radius: 10px;
     padding: 0.7rem;
     margin-bottom: 0.55rem;
@@ -103,12 +113,12 @@
 .name {
   margin: 0;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .meta {
   margin: 0.1rem 0 0;
-  color: #7b8794;
+  color: var(--text-secondary);
   font-size: 0.82rem;
 }
 
@@ -126,45 +136,49 @@
   padding: 0.38rem 0.65rem;
   font-size: 0.78rem;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .btn-primary {
-  background: #2d7ef7;
+  background: var(--accent-color);
   color: #fff;
+  &:hover { background: var(--accent-hover); }
 }
 
 .btn-secondary {
-  background: #eef2f7;
-  color: #2f3e4d;
+  background: var(--surface-border);
+  color: var(--text-primary);
+  &:hover { background: var(--divider-color); }
 }
 
 .btn-danger {
-  background: #ffecec;
-  color: #ad2c2c;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  &:hover { background: #ef4444; color: #fff; }
 }
 
 .tag {
   padding: 0.25rem 0.5rem;
   border-radius: 999px;
   font-size: 0.74rem;
-  background: #e8f7ee;
-  color: #1f7a3f;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
 
   &.pending {
-    background: #fff3dc;
-    color: #a56a00;
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
   }
 }
 
 .friends-empty {
   margin: 0;
-  color: #7f8c98;
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
 .error-inline {
   margin: 0 0 0.5rem;
-  color: #b23232;
+  color: #ef4444;
   font-size: 0.85rem;
 }
 
@@ -175,17 +189,19 @@
 }
 
 .sidebar-card {
-  background: #fff;
+  background: var(--surface-color);
   border-radius: 16px;
   padding: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--surface-border);
   position: sticky;
   top: 100px;
+  transition: background-color 0.3s ease;
 
   h3 {
     margin: 0 0 1rem;
     font-size: 0.95rem;
-    color: #2c3e50;
+    color: var(--text-primary);
     font-weight: 600;
   }
 }
@@ -204,13 +220,14 @@
   align-items: center;
   gap: 8px;
   padding: 10px;
-  border: 1px solid #edf1f4;
+  border: 1px solid var(--surface-border);
+  background: var(--bg-color);
   border-radius: 8px;
   margin-bottom: 8px;
-  transition: background 0.15s;
+  transition: all 0.15s;
 
   &:hover {
-    background: #f8f9fa;
+    background: var(--surface-border);
   }
 }
 
@@ -223,7 +240,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, var(--accent-color), #764ba2);
 }
 
 .friend-avatar {
@@ -251,7 +268,7 @@
   margin: 0;
   font-weight: 600;
   font-size: 0.88rem;
-  color: #2c3e50;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -260,7 +277,7 @@
 .friend-email {
   margin: 0;
   font-size: 0.72rem;
-  color: #7b8794;
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -276,7 +293,7 @@
 .btn-remove {
   border: none;
   background: none;
-  color: #667eea;
+  color: var(--accent-color);
   cursor: pointer;
   font-size: 0.85rem;
   padding: 4px 6px;
@@ -284,23 +301,23 @@
   transition: background 0.15s, color 0.15s;
 
   &:hover {
-    background: rgba(102, 126, 234, 0.1);
-    color: #2d7ef7;
+    background: var(--accent-light);
+    color: var(--accent-hover);
   }
 }
 
 .btn-remove {
-  color: #e74c3c;
+  color: #ef4444;
 
   &:hover {
-    background: rgba(231, 76, 60, 0.1);
-    color: #c0392b;
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
   }
 }
 
 .sidebar-empty {
   margin: 0;
-  color: #7f8c98;
+  color: var(--text-muted);
   font-size: 0.85rem;
   text-align: center;
   padding: 12px 0;

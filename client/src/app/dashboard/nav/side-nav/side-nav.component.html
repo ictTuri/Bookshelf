@@ -1,6 +1,14 @@
 @if (isBrowser && (user$ | async)) {
   <nav class="side-nav" [class.collapsed]="collapsed">
 
+    <div class="side-nav-header">
+      <button class="side-nav-toggle" (click)="toggle()" [attr.aria-label]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'" [title]="collapsed ? 'Expand' : 'Collapse'">
+        <i class="fas fa-chevron-left"></i>
+        <span class="side-nav-label">Collapse</span>
+      </button>
+      <div class="side-nav-divider"></div>
+    </div>
+
     <div class="side-nav-links">
       <a routerLink="/home" routerLinkActive="active" class="side-nav-item" [title]="collapsed ? 'Home' : ''">
         <i class="fas fa-home"></i>
@@ -40,12 +48,17 @@
         </a>
       }
 
-      <div class="side-nav-footer">
-        <button class="side-nav-toggle" (click)="toggle()" [attr.aria-label]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'" [title]="collapsed ? 'Expand' : 'Collapse'">
-          <i class="fas fa-chevron-left"></i>
-          <span class="side-nav-label">Collapse</span>
-        </button>
-      </div>
+      <div class="side-nav-divider"></div>
+
+      <button class="side-nav-item theme-toggle" (click)="toggleTheme()" [title]="(currentTheme$ | async) === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+        @if ((currentTheme$ | async) === 'dark') {
+          <i class="fas fa-sun"></i>
+          <span class="side-nav-label">Light Mode</span>
+        } @else {
+          <i class="fas fa-moon"></i>
+          <span class="side-nav-label">Dark Mode</span>
+        }
+      </button>
     </div>
 
   </nav>

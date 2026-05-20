@@ -6,6 +6,7 @@ import { AuthStateService, AuthUser } from '../../service/auth/auth-state.servic
 import { ProfileService } from '../../service/profile/profile.service';
 import { NotificationService } from '../../service/notification/notification.service';
 import { MessageService } from '../../service/message/message.service';
+import { ThemeService, Theme } from '../../service/theme/theme.service';
 import { DtoNotificationResponse } from '../../interfaces/notification.interface';
 import { DtoConversationResponse } from '../../interfaces/message.interface';
 
@@ -19,6 +20,7 @@ export class NavComponent implements OnInit, OnDestroy {
   user$: Observable<any>;
   isBrowser: boolean;
   currentUser: AuthUser | null = null;
+  currentTheme$: Observable<Theme>;
 
   get isAdmin(): boolean {
     return this.authService.isAdmin();
@@ -37,6 +39,16 @@ export class NavComponent implements OnInit, OnDestroy {
   conversations: DtoConversationResponse[] = [];
   conversationsLoading = false;
   unreadConversationsCount = 0;
+
+  get isAuthRoute(): boolean {
+    const url = this.router.url;
+    return url.startsWith('/auth') || url === '/auth' || url.includes('/auth/');
+  }
+
+  get isLandingPage(): boolean {
+    const url = this.router.url;
+    return url === '/' || url.startsWith('/about') || url.startsWith('/feedback');
+  }
 
   private userSub!: Subscription;
   private pollSub?: Subscription;
@@ -214,10 +226,12 @@ export class NavComponent implements OnInit, OnDestroy {
     private router: Router,
     private profileService: ProfileService,
     private notificationService: NotificationService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private themeService: ThemeService
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
     this.user$ = this.authService.user$;
+    this.currentTheme$ = this.themeService.theme$;
   }
 
   ngOnInit(): void {
@@ -272,6 +286,10 @@ export class NavComponent implements OnInit, OnDestroy {
     this.messageSubs.forEach(s => s.unsubscribe());
     this.messageService.disconnectSSE();
     if (this.profilePictureUrl) URL.revokeObjectURL(this.profilePictureUrl);
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
   }
 
   private fetchUnreadCount(): void {
@@ -340,7 +358,7 @@ export class NavComponent implements OnInit, OnDestroy {
     this.messageSubs.forEach(s => s.unsubscribe());
     this.messageService.disconnectSSE();
     this.authService.clearUser();
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(['/']);
   }
 
   openAddBook(): void { this.showAddBookPopup = true; }
@@ -392,4 +410,3 @@ export class NavComponent implements OnInit, OnDestroy {
     });
   }
 }
-

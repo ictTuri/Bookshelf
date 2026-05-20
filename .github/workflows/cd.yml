@@ -151,15 +151,33 @@ jobs:
             echo "Stopping old Angular SSR instance (PID: $PID)..."
             kill -9 $PID
           fi
-
+          
           cd /var/www/bookshelf
           
           echo "Starting new Angular SSR instance..."
+          # Clear old logs so we only see the fresh boot errors if it fails
+          > app.log 
           nohup node server/server.mjs >> app.log 2>&1 &
           
-          sleep 2
+          echo "Waiting for server to start on port 4000..."
+          ATTEMPTS=0
+          MAX_ATTEMPTS=15
+          
+          while ! curl -s -I http://localhost:4000 > /dev/null; do
+            if [ $ATTEMPTS -eq $MAX_ATTEMPTS ]; then
+              echo "❌ Server failed to start within $MAX_ATTEMPTS seconds."
+              echo "=== LAST 20 LINES OF APP.LOG ==="
+              tail -n 20 app.log
+              exit 1
+            fi
+            
+            ATTEMPTS=$((ATTEMPTS + 1))
+            sleep 1
+          done
+
+          echo "✅ Server is up and responding!"
           curl -I http://localhost:4000
-          EOF
+        EOF
       # ── Configure nginx reverse proxy ─────────────────────────────────────────
       - name: Configure nginx
         run: |
