@@ -149,7 +149,8 @@ jobs:
           # 1. Load Node environment
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-              # 2. Kill existing process safely
+
+          # 2. Kill existing process safely
           PID=$(lsof -t -i:4000)
           if [ ! -z "$PID" ]; then
             kill -9 $PID || true
@@ -157,9 +158,19 @@ jobs:
           
           cd /var/www/bookshelf
           
-          # 3. Start with explicit node path and check build output folder
-          # Adjust "dist/client/server/server.mjs" to your actual build path
-          nohup node dist/client/server/server.mjs >> app.log 2>&1 &
+          # 3. Dynamically find the server entry point
+          # Look for server.mjs or main.server.mjs in any subdirectory
+          SERVER_MJS=$(find . -name "server.mjs" -o -name "main.server.mjs" | head -n 1)
+          
+          if [ -z "$SERVER_MJS" ]; then
+            echo "❌ Could not find server entry point (server.mjs or main.server.mjs)"
+            echo "Actual directory structure in /var/www/bookshelf:"
+            find . -maxdepth 3
+            exit 1
+          fi
+          
+          echo "Starting server: node $SERVER_MJS"
+          nohup node "$SERVER_MJS" >> app.log 2>&1 &
           
           # 4. Wait for boot
           ATTEMPTS=0
@@ -167,7 +178,10 @@ jobs:
           while ! curl -s http://localhost:4000 > /dev/null; do
             if [ $ATTEMPTS -eq $MAX_ATTEMPTS ]; then
               echo "❌ Server failed to start."
+              echo "Last 50 lines of app.log:"
               tail -n 50 app.log
+              echo "Current directory structure:"
+              find . -maxdepth 3
               exit 1
             fi
             ATTEMPTS=$((ATTEMPTS + 1))
