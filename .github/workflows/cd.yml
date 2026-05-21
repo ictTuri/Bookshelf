@@ -151,42 +151,63 @@ jobs:
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
           # 2. Kill existing process safely
-          PID=$(lsof -t -i:4000)
-          if [ ! -z "$PID" ]; then
-            kill -9 $PID || true
+          echo "Checking for processes on port 4000..."
+          if command -v lsof >/dev/null 2>&1; then
+            PID=$(lsof -t -i:4000)
+            if [ ! -z "$PID" ]; then
+              echo "Killing existing process $PID"
+              kill -9 $PID || true
+            fi
+          else
+            echo "lsof not found, attempting to kill node processes using port 4000 via fuser or pkill..."
+            fuser -k 4000/tcp || true
           fi
           
           cd /var/www/bookshelf
           
-          # 3. Dynamically find the server entry point
-          # Look for server.mjs or main.server.mjs in any subdirectory
-          SERVER_MJS=$(find . -name "server.mjs" -o -name "main.server.mjs" | head -n 1)
+          # 3. Dynamically find the server entry point (Prioritizing server.mjs)
+          echo "Searching for server entry point..."
+          SERVER_MJS=$(find . -name "server.mjs" | head -n 1)
+          if [ -z "$SERVER_MJS" ]; then
+            SERVER_MJS=$(find . -name "main.server.mjs" | head -n 1)
+          fi
           
           if [ -z "$SERVER_MJS" ]; then
             echo "❌ Could not find server entry point (server.mjs or main.server.mjs)"
-            echo "Actual directory structure in /var/www/bookshelf:"
+            echo "Actual directory structure in $(pwd):"
             find . -maxdepth 3
             exit 1
           fi
           
+          echo "Found entry point: $SERVER_MJS"
+          echo "Node version: $(node -v)"
           echo "Starting server: node $SERVER_MJS"
-          nohup node "$SERVER_MJS" >> app.log 2>&1 &
+          
+          # Use a fresh log file and ensure we capture all output
+          rm -f app.log
+          nohup node "$SERVER_MJS" > app.log 2>&1 &
+          
+          # Give it a second to start and maybe fail
+          sleep 2
           
           # 4. Wait for boot
           ATTEMPTS=0
           MAX_ATTEMPTS=20
           while ! curl -s http://localhost:4000 > /dev/null; do
             if [ $ATTEMPTS -eq $MAX_ATTEMPTS ]; then
-              echo "❌ Server failed to start."
-              echo "Last 50 lines of app.log:"
-              tail -n 50 app.log
-              echo "Current directory structure:"
-              find . -maxdepth 3
+              echo "❌ Server failed to start or port 4000 is not reachable."
+              echo "--- app.log content ---"
+              cat app.log
+              echo "--- end of app.log ---"
+              echo "Current processes:"
+              ps aux | grep node | grep -v grep
               exit 1
             fi
             ATTEMPTS=$((ATTEMPTS + 1))
+            echo "Waiting for server to respond on port 4000... (Attempt $ATTEMPTS/$MAX_ATTEMPTS)"
             sleep 1
           done
+          echo "✅ Server is up and running!"
           EOF
       # ── Configure nginx reverse proxy ─────────────────────────────────────────
       - name: Configure nginx

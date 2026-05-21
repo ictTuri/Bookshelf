@@ -762,33 +762,150 @@
   .dashboard { padding: 16px 12px; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .stat-card { padding: 16px; gap: 12px; }
-  .content-grid { grid-template-columns: 1fr; }
+  
+  .content-grid { 
+    display: none !important; 
+  }
+  
   .content-card.large { grid-column: span 1; }
   .content-card { padding: 18px; }
 }
 
-@media (max-width: 480px) {
-  .dashboard { padding: 12px 10px; }
-  .stats-grid { grid-template-columns: 1fr 1fr; }
-  .dashboard-header h1 { font-size: 22px; }
-  .content-card { padding: 14px; }
-
-  .progress-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 6px;
-
-    .progress-label {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
+@media (max-width: 640px) {
+  .dashboard { padding: 8px 6px; }
+  .stats-grid { 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 6px; 
+    margin-bottom: 12px;
+  }
+  .stat-card { 
+    padding: 10px 8px; 
+    gap: 8px;
+    
+    .stat-icon {
+      width: 28px;
+      height: 28px;
+      i { font-size: 14px; }
     }
 
-    .progress-track {
-      width: 100%;
+    .stat-info {
+      h3 { font-size: 10px; margin-bottom: 1px; }
+      .stat-number { font-size: 16px; }
     }
   }
 
-  .progress-legend { gap: 0.4rem 1rem; font-size: 0.75rem; }
-  .progress-summary { font-size: 0.875rem; }
+  .dashboard-header {
+    margin-bottom: 12px;
+    h1 { font-size: 18px; }
+    .subtitle { font-size: 12px; margin-top: 2px; }
+  }
+
+  // Hide reading progress on mobile
+  .content-grid {
+    display: none !important;
+  }
+
+  // Compact recommended books
+  .book-sections {
+    margin-top: 10px;
+
+    .section-header {
+      margin-bottom: 0.5rem;
+      h2 { font-size: 1rem; }
+      .book-count { font-size: 0.8rem; }
+    }
+  }
+
+  .books-table-container {
+    border-radius: 4px;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .books-table {
+    thead {
+      display: none; // Hide headers
+    }
+
+    tbody tr {
+      display: grid;
+      grid-template-columns: 46px 1fr auto;
+      grid-template-areas: 
+        "cover title action"
+        "cover author action"
+        "cover genre action"
+        "cover isbn action";
+      padding: 10px;
+      gap: 2px 12px;
+      align-items: start;
+      background: var(--surface-color);
+      margin-bottom: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--surface-border);
+
+      td {
+        padding: 0 !important;
+        border: none !important;
+        height: auto;
+      }
+
+      td:nth-child(1) { 
+        grid-area: cover;
+        align-self: start;
+      }
+      td:nth-child(2) { 
+        grid-area: title;
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        line-height: 1.2;
+      }
+      td:nth-child(3) { 
+        grid-area: author;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+      }
+      td:nth-child(4) { 
+        grid-area: genre;
+        display: block !important;
+        font-size: 0.7rem;
+        
+        .genre-badge {
+          padding: 1px 6px;
+          font-size: 0.65rem;
+          border-radius: 4px;
+        }
+      }
+      td:nth-child(5) { 
+        grid-area: isbn;
+        display: block !important;
+        font-size: 0.65rem;
+        color: var(--text-muted);
+      }
+      td:nth-child(6) { 
+        grid-area: action;
+        align-self: center;
+      }
+    }
+  }
+
+  .table-book-cover {
+    width: 46px;
+    height: 66px;
+    border-radius: 4px;
+    
+    .table-book-emoji { font-size: 1.2rem; }
+  }
+
+  .btn-request {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    border-radius: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard { padding: 6px 4px; }
+  .dashboard-header h1 { font-size: 16px; }
 }

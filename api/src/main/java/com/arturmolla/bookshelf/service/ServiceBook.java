@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -74,9 +75,11 @@ public class ServiceBook {
     public PageResponse<DtoBookResponse> getAllBooksPaged(int page, int size, String query, Authentication connectedUser) {
         var user = (User) connectedUser.getPrincipal();
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+        List<Long> requestedBookIds = repositoryBookTransactionHistory.findRequestedBookIdsByUser(user.getId());
         var spec = SpecificationBook.notOwnedBy(user.getId())
                 .and(SpecificationBook.notArchived())
                 .and(SpecificationBook.isShareable())
+                .and(SpecificationBook.notIn(requestedBookIds))
                 .and(SpecificationBook.matchesQuery(query));
         Page<EntityBook> books = repositoryBook.findAll(spec, pageable);
         return mapPageToCustomWrapper(books);
@@ -225,23 +228,41 @@ public class ServiceBook {
         var book = repositoryBook.findById(bookId)
                 .orElseThrow(() -> new EntityNotFoundException(BOOK_NOT_FOUND + bookId));
         var user = (User) connectedUser.getPrincipal();
-        if (!Objects.equals(book.getOwner().getId(), user.getId())) {
-            throw new OperationNotPermittedException("You do not own this book!");
+        
+        Optional<EntityBookTransactionHistory> optionalHistory;
+        boolean isOwner = Objects.equals(book.getOwner().getId(), user.getId());
+
+        if (isOwner) {
+            optionalHistory = repositoryBookTransactionHistory.findPendingRequestByBookIdAndOwnerId(bookId, user.getId());
+        } else {
+            optionalHistory = repositoryBookTransactionHistory.findPendingRequestByBookIdAndRequesterId(bookId, user.getId());
         }
-        EntityBookTransactionHistory bookTransactionHistory = repositoryBookTransactionHistory
-                .findPendingRequestByBookIdAndOwnerId(bookId, user.getId())
+
+        EntityBookTransactionHistory bookTransactionHistory = optionalHistory
                 .orElseThrow(() -> new OperationNotPermittedException("No pending borrow request found for this book!"));
+
         Long historyId = bookTransactionHistory.getId();
         repositoryBookTransactionHistory.delete(bookTransactionHistory);
 
-        // Notify the requester that their borrow request was rejected
-        serviceNotification.notify(
-                bookTransactionHistory.getUser(), user,
-                NotificationType.BOOK_BORROW_REJECTED,
-                "Your borrow request was rejected",
-                "Your request to borrow \"" + book.getTitle() + "\" was declined by the owner.",
-                bookId, "BOOK"
-        );
+        if (isOwner) {
+            // Notify the requester that their borrow request was rejected by the owner
+            serviceNotification.notify(
+                    bookTransactionHistory.getUser(), user,
+                    NotificationType.BOOK_BORROW_REJECTED,
+                    "Your borrow request was rejected",
+                    "Your request to borrow \"" + book.getTitle() + "\" was declined by the owner.",
+                    bookId, "BOOK"
+            );
+        } else {
+            // Notify the owner that the requester canceled their borrow request
+            serviceNotification.notify(
+                    book.getOwner(), user,
+                    NotificationType.BOOK_BORROW_REQUEST_CANCELLED,
+                    "Borrow request cancelled",
+                    user.getFullName() + " cancelled their request to borrow \"" + book.getTitle() + "\".",
+                    bookId, "BOOK"
+            );
+        }
 
         return historyId;
     }

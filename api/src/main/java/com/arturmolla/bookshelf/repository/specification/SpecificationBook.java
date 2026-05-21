@@ -29,6 +29,15 @@ public class SpecificationBook {
                 cb.isTrue(root.get("shareable"));
     }
 
+    public static Specification<EntityBook> notIn(List<Long> bookIds) {
+        return (root, query, cb) -> {
+            if (bookIds == null || bookIds.isEmpty()) {
+                return cb.conjunction();
+            }
+            return root.get("id").in(bookIds).not();
+        };
+    }
+
     /**
      * Case-insensitive LIKE search across title, authorName, synopsis, isbn, and genre.
      * Returns all books when {@code query} is null or blank.

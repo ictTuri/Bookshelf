@@ -90,8 +90,19 @@ public interface RepositoryBookTransactionHistory extends JpaRepository<EntityBo
             WHERE history.book.owner.id = :ownerId
             AND history.book.id = :bookId
             AND history.requestApproved = false
-            AND history.returned = false""")
+            AND history.returned = false
+            AND history.requested = true""")
     Optional<EntityBookTransactionHistory> findPendingRequestByBookIdAndOwnerId(Long bookId, Long ownerId);
+
+    @Query("""
+            SELECT history
+            FROM EntityBookTransactionHistory history
+            WHERE history.user.id = :requesterId
+            AND history.book.id = :bookId
+            AND history.requestApproved = false
+            AND history.returned = false
+            AND history.requested = true""")
+    Optional<EntityBookTransactionHistory> findPendingRequestByBookIdAndRequesterId(Long bookId, Long requesterId);
 
     @Query("""
             SELECT COUNT(h)
@@ -135,6 +146,11 @@ public interface RepositoryBookTransactionHistory extends JpaRepository<EntityBo
     @Modifying
     @Query("DELETE FROM EntityBookTransactionHistory h WHERE h.book.id IN :bookIds")
     void deleteAllByBookIdIn(@Param("bookIds") List<Long> bookIds);
+
+    @Query("""
+        SELECT h.book.id
+        FROM EntityBookTransactionHistory h
+        WHERE h.user.id = :userId AND (h.returned = false OR h.returnApproved = false)
+        """)
+    List<Long> findRequestedBookIdsByUser(@Param("userId") Long userId);
 }
-
-
