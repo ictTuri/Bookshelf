@@ -483,9 +483,86 @@
 }
 
 @media (max-width: 768px) {
-  .messages-layout { grid-template-columns: 1fr; grid-template-rows: minmax(190px, 34%) minmax(0, 1fr); height: 100%; min-height: 0; }
-  .conversations-panel { max-height: none; }
-  .chat-panel { min-height: 0; }
+  .messages-layout { 
+    grid-template-columns: 1fr; 
+    grid-template-rows: auto minmax(0, 1fr); 
+    height: 100%; 
+    min-height: 0; 
+    gap: 8px;
+
+    &.sidebar-collapsed {
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+  }
+
+  .conversations-panel { 
+    max-height: none; 
+    border-radius: 12px;
+
+    .panel-header {
+      padding: 6px 12px;
+      h3 { font-size: 0.85rem; font-weight: 600; }
+      .sidebar-toggle-btn { display: none; }
+    }
+
+    .conversation-list {
+      display: flex !important;
+      flex-direction: row !important;
+      overflow-x: auto !important;
+      padding: 4px 12px 10px !important;
+      gap: 16px !important;
+      scrollbar-width: none;
+      &::-webkit-scrollbar { display: none; }
+    }
+
+    .conversation-item {
+      flex-direction: column !important;
+      padding: 0 !important;
+      gap: 4px !important;
+      background: transparent !important;
+      min-width: 54px !important;
+      align-items: center !important;
+      
+      .conversation-avatar-container {
+        width: 48px !important;
+        height: 48px !important;
+        border: 2px solid transparent;
+        transition: border-color 0.2s;
+      }
+
+      &.active .conversation-avatar-container {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.2);
+      }
+
+      .conversation-body {
+        display: block !important;
+        width: 100%;
+        text-align: center;
+        
+        .conversation-name {
+          font-size: 0.7rem;
+          color: var(--text-primary);
+          margin-bottom: 0;
+          max-width: 60px;
+        }
+        .conversation-email, .conversation-preview { display: none !important; }
+      }
+
+      .conversation-actions { display: none !important; }
+
+      .conversation-unread {
+        position: absolute !important;
+        top: -2px !important;
+        right: -2px !important;
+        border: 2px solid var(--surface-color) !important;
+        z-index: 2;
+      }
+    }
+  }
+
+  .chat-panel { min-height: 0; border-radius: 12px; }
+  .chat-header { padding: 8px 12px; }
   .message-item .message-bubble { max-width: 85%; }
   .message-input { font-size: 0.9rem; padding: 8px 12px; }
   .send-btn { width: 36px; height: 36px; font-size: 0.8rem; }

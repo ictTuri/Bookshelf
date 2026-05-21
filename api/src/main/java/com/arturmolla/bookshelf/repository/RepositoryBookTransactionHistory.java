@@ -90,8 +90,19 @@ public interface RepositoryBookTransactionHistory extends JpaRepository<EntityBo
             WHERE history.book.owner.id = :ownerId
             AND history.book.id = :bookId
             AND history.requestApproved = false
-            AND history.returned = false""")
+            AND history.returned = false
+            AND history.requested = true""")
     Optional<EntityBookTransactionHistory> findPendingRequestByBookIdAndOwnerId(Long bookId, Long ownerId);
+
+    @Query("""
+            SELECT history
+            FROM EntityBookTransactionHistory history
+            WHERE history.user.id = :requesterId
+            AND history.book.id = :bookId
+            AND history.requestApproved = false
+            AND history.returned = false
+            AND history.requested = true""")
+    Optional<EntityBookTransactionHistory> findPendingRequestByBookIdAndRequesterId(Long bookId, Long requesterId);
 
     @Query("""
             SELECT COUNT(h)

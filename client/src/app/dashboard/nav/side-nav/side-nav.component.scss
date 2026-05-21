@@ -28,6 +28,10 @@ $transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
   transition: width $transition, background-color 0.3s ease, border-color 0.3s ease;
 
+  @media (max-width: 640px) {
+    display: none;
+  }
+
   &.collapsed {
     width: $nav-collapsed-width;
 
@@ -41,7 +45,8 @@ $transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     .side-nav-item,
     .side-nav-toggle {
       justify-content: center;
-      padding: 9px;
+      padding: 12px 0;
+      gap: 0;
     }
 
     .side-nav-toggle i {
@@ -86,8 +91,8 @@ $transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   &:hover {
-    background: var(--accent-light);
-    color: var(--accent-color);
+    background: var(--accent-color);
+    color: white;
   }
 }
 
@@ -155,6 +160,16 @@ $transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   
   i {
     color: var(--accent-color);
+    transition: color $transition;
+  }
+
+  &:hover {
+    background: var(--accent-color);
+    color: white;
+
+    i {
+      color: white;
+    }
   }
 }
 

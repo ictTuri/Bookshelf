@@ -126,13 +126,27 @@
     font-size: 0.95rem;
     font-weight: 500;
     transition: background 0.15s;
+    background: none;
+    border: none;
+    width: 100%;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
 
     i { color: var(--accent-color); width: 16px; text-align: center; }
 
     &:hover { background: var(--accent-light); }
     &.active { background: var(--accent-light); color: var(--accent-color); font-weight: 600; }
 
-    & + .nav-menu-item { border-top: 1px solid var(--divider-color); }
+    & + .nav-menu-item,
+    & + .mobile-nav-section .nav-menu-item:first-child { border-top: 1px solid var(--divider-color); }
+  }
+}
+
+.mobile-nav-section {
+  .profile-dropdown-divider {
+    height: 1px;
+    background: var(--divider-color);
   }
 }
 
@@ -222,8 +236,8 @@
   font-size: 1.1rem;
 
   &:hover {
-    background: var(--accent-light);
-    color: var(--accent-color);
+    background: var(--accent-color);
+    color: white;
   }
 }
 
@@ -721,13 +735,13 @@
   .notification-btn, .message-btn { width: 34px; height: 34px; }
 
   .profile-dropdown {
-    right: -10px;
-    width: min(calc(100vw - 20px), 280px);
+    right: 0;
+    width: min(calc(100vw - 20px), 250px);
   }
 
   .notification-dropdown, .message-dropdown {
-    right: -20px;
-    width: min(calc(100vw - 20px), 320px);
+    right: 0;
+    width: min(calc(100vw - 20px), 260px);
   }
 
   .btn-login { padding: 7px 14px; font-size: 0.82rem; }
