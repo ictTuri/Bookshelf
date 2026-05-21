@@ -74,9 +74,11 @@ public class ServiceBook {
     public PageResponse<DtoBookResponse> getAllBooksPaged(int page, int size, String query, Authentication connectedUser) {
         var user = (User) connectedUser.getPrincipal();
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+        List<Long> requestedBookIds = repositoryBookTransactionHistory.findRequestedBookIdsByUser(user.getId());
         var spec = SpecificationBook.notOwnedBy(user.getId())
                 .and(SpecificationBook.notArchived())
                 .and(SpecificationBook.isShareable())
+                .and(SpecificationBook.notIn(requestedBookIds))
                 .and(SpecificationBook.matchesQuery(query));
         Page<EntityBook> books = repositoryBook.findAll(spec, pageable);
         return mapPageToCustomWrapper(books);

@@ -135,6 +135,11 @@ public interface RepositoryBookTransactionHistory extends JpaRepository<EntityBo
     @Modifying
     @Query("DELETE FROM EntityBookTransactionHistory h WHERE h.book.id IN :bookIds")
     void deleteAllByBookIdIn(@Param("bookIds") List<Long> bookIds);
+
+    @Query("""
+        SELECT h.book.id
+        FROM EntityBookTransactionHistory h
+        WHERE h.user.id = :userId AND (h.returned = false OR h.returnApproved = false)
+        """)
+    List<Long> findRequestedBookIdsByUser(@Param("userId") Long userId);
 }
-
-

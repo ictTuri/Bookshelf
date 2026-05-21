@@ -1,71 +1,4 @@
 <div class="dashboard">
-  <div class="dashboard-header">
-    @if (!userDashboard) {
-      <p class="subtitle">Welcome back, let's explore your activity</p>
-    }
-    @if (userDashboard) {
-      <p class="subtitle">Welcome back, {{ userDashboard.fullName }} — here's your activity</p>
-    }
-  </div>
-
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">
-        <i class="fas fa-book"></i>
-      </div>
-      <div class="stat-info">
-        <h3>Books Owned</h3>
-        @if (!dashboardLoading) {
-          <p class="stat-number">{{ userDashboard?.stats?.booksOwned ?? '-' }}</p>
-        }
-        @if (dashboardLoading) {
-          <p class="stat-number loading-placeholder">...</p>
-        }
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">
-        <i class="fas fa-bookmark"></i>
-      </div>
-      <div class="stat-info">
-        <h3>Borrowed</h3>
-        @if (!dashboardLoading) {
-          <p class="stat-number">{{ userDashboard?.stats?.currentlyBorrowed ?? '-' }}</p>
-        }
-        @if (dashboardLoading) {
-          <p class="stat-number loading-placeholder">...</p>
-        }
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">
-        <i class="fas fa-check-circle"></i>
-      </div>
-      <div class="stat-info">
-        <h3>Books Read</h3>
-        @if (!dashboardLoading) {
-          <p class="stat-number">{{ userDashboard?.stats?.booksRead ?? '-' }}</p>
-        }
-        @if (dashboardLoading) {
-          <p class="stat-number loading-placeholder">...</p>
-        }
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">
-        <i class="fas fa-clock"></i>
-      </div>
-      <div class="stat-info">
-        <h3>Pending Requests</h3>
-        @if (!dashboardLoading) {
-          <p class="stat-number">{{ userDashboard?.stats?.pendingRequests ?? '-' }}</p>
-        }
-        @if (dashboardLoading) {
-          <p class="stat-number loading-placeholder">...</p>
-        }
-      </div>
-    </div>
-  </div>
 
   <div class="content-grid">
     <div class="content-card large">
@@ -131,7 +64,6 @@
 
       </div>
     </div>
-
   </div>
 
   <div class="book-sections">
@@ -218,34 +150,6 @@
         <p>No books available.</p>
       </div>
     }
-
-    <div class="section-header">
-      <h2>Categories</h2>
-      <a href="#" class="view-all">View all</a>
-    </div>
-
-    <div class="categories-grid">
-      <div class="category-card fiction">
-        <i class="fas fa-book"></i>
-        <h3>Fiction</h3>
-        <p>1.2k books</p>
-      </div>
-      <div class="category-card science">
-        <i class="fas fa-flask"></i>
-        <h3>Science</h3>
-        <p>850 books</p>
-      </div>
-      <div class="category-card history">
-        <i class="fas fa-landmark"></i>
-        <h3>History</h3>
-        <p>642 books</p>
-      </div>
-      <div class="category-card biography">
-        <i class="fas fa-user-tie"></i>
-        <h3>Biography</h3>
-        <p>428 books</p>
-      </div>
-    </div>
   </div>
 
   @if (requestModalOpen && selectedRequestBook) {

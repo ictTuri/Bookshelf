@@ -145,6 +145,12 @@ export class DashComponent implements OnInit {
         this.requestSubmitting = false;
         this.requestStatusType = 'success';
         this.requestStatusMessage = 'Book requested successfully.';
+        
+        // Refresh data to reflect the new request
+        this.loadRecommendedBooks();
+        if (this.isLoggedIn) {
+          this.loadUserDashboard();
+        }
       },
       error: (err) => {
         this.requestSubmitting = false;
