@@ -213,8 +213,13 @@ jobs:
       - name: Configure nginx
         run: |
           ssh hetzner bash -s << 'EOF'
-          apt-get install -y nginx
-          cat > /etc/nginx/sites-available/orbilay.com << 'NGINX'
+          apt-get update
+          apt-get install -y nginx python3-certbot-nginx
+
+          # Check if certificates exist. If not, we'll start with port 80 and try to obtain them.
+          if [ ! -f /etc/letsencrypt/live/orbilay.com/fullchain.pem ]; then
+              echo "Certificates not found. Setting up port 80 and running certbot..."
+              cat > /etc/nginx/sites-available/orbilay.com << 'NGINX'
           server {
               listen 80;
               server_name orbilay.com www.orbilay.com;
@@ -238,6 +243,50 @@ jobs:
               }
           }
           NGINX
+              ln -sf /etc/nginx/sites-available/orbilay.com /etc/nginx/sites-enabled/orbilay.com
+              nginx -t && systemctl reload nginx
+              # Attempt to get certificates. 
+              # Using --register-unsafely-without-email for automation if no email is known.
+              certbot --nginx -d orbilay.com -d www.orbilay.com --non-interactive --agree-tos --register-unsafely-without-email --redirect || true
+          fi
+
+          # Write final configuration including SSL (based on user's current config)
+          cat > /etc/nginx/sites-available/orbilay.com << 'NGINX'
+          server {
+              listen 80;
+              server_name orbilay.com www.orbilay.com;
+              return 301 https://$host$request_uri;
+          }
+
+          server {
+              listen 443 ssl; # managed by Certbot
+              server_name orbilay.com www.orbilay.com;
+
+              ssl_certificate /etc/letsencrypt/live/orbilay.com/fullchain.pem; # managed by Certbot
+              ssl_certificate_key /etc/letsencrypt/live/orbilay.com/privkey.pem; # managed by Certbot
+              include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+              ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+              location /api/ {
+                  proxy_pass http://127.0.0.1:8088;
+                  proxy_redirect off;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              }
+
+              location / {
+                  proxy_pass http://127.0.0.1:4000;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+                  proxy_cache_bypass $http_upgrade;
+                  add_header Cross-Origin-Opener-Policy unsafe-none always;
+              }
+          }
+          NGINX
+
           ln -sf /etc/nginx/sites-available/orbilay.com /etc/nginx/sites-enabled/orbilay.com
           rm -f /etc/nginx/sites-enabled/default
           nginx -t && systemctl reload nginx
