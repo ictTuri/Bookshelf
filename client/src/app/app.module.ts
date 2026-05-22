@@ -37,6 +37,8 @@ import { AdminBooksComponent } from './dashboard/admin/admin-books/admin-books.c
 import { AdminFeedbackComponent } from './dashboard/admin/admin-feedback/admin-feedback.component';
 import { AdminReportsComponent } from './dashboard/admin/admin-reports/admin-reports.component';
 import { SideNavComponent } from './dashboard/nav/side-nav/side-nav.component';
+import { PickerModule } from '@ctrl/ngx-emoji-mart';
+import { EmojiModule } from '@ctrl/ngx-emoji-mart/ngx-emoji';
 
 @NgModule({
   declarations: [
@@ -77,7 +79,9 @@ import { SideNavComponent } from './dashboard/nav/side-nav/side-nav.component';
     MatButtonModule,
     MatIconModule,
     MatCheckboxModule,
-    RouterModule
+    RouterModule,
+    PickerModule,
+    EmojiModule
   ],
   providers: [
     provideClientHydration(withEventReplay()),

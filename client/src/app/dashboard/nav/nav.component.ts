@@ -1,4 +1,4 @@
-import { Component, HostListener, Inject, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { Component, HostListener, Inject, OnInit, OnDestroy, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Observable, Subscription, interval } from 'rxjs';
 import { Router } from '@angular/router';
@@ -227,7 +227,8 @@ export class NavComponent implements OnInit, OnDestroy {
     private profileService: ProfileService,
     private notificationService: NotificationService,
     private messageService: MessageService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private cdr: ChangeDetectorRef
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
     this.user$ = this.authService.user$;
@@ -237,6 +238,11 @@ export class NavComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.userSub = this.authService.user$.subscribe(user => {
       this.currentUser = user;
+      
+      // Clear existing subs before setting up new ones for this user session
+      this.messageSubs.forEach(s => s.unsubscribe());
+      this.messageSubs = [];
+
       if (user) {
         this.ensureUserFullName(user);
         this.loadProfilePicture();
@@ -246,9 +252,11 @@ export class NavComponent implements OnInit, OnDestroy {
         // Subscribe to incoming messages and read events
         const msgSub = this.messageService.message$.subscribe((msg) => {
           this.refreshConversations();
+          this.cdr.detectChanges();
         });
         const readSub = this.messageService.messageRead$.subscribe((msg) => {
           this.refreshConversations();
+          this.cdr.detectChanges();
         });
         this.messageSubs.push(msgSub, readSub);
         // Poll unread count every 30 seconds
@@ -329,7 +337,10 @@ export class NavComponent implements OnInit, OnDestroy {
   private refreshConversations(): void {
     // Always refresh the badge count
     this.messageService.getUnreadConversationCount().subscribe({
-      next: (count) => { this.unreadConversationsCount = count; }
+      next: (count) => { 
+        this.unreadConversationsCount = count;
+        this.cdr.detectChanges();
+      }
     });
 
     if (this.showMessages) {
@@ -346,8 +357,12 @@ export class NavComponent implements OnInit, OnDestroy {
         } else {
           this.profilePictureUrl = null;
         }
+        this.cdr.detectChanges();
       },
-      error: () => { this.profilePictureUrl = null; }
+      error: () => { 
+        this.profilePictureUrl = null;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -356,6 +371,7 @@ export class NavComponent implements OnInit, OnDestroy {
     this.profilePictureUrl = null;
     this.pollSub?.unsubscribe();
     this.messageSubs.forEach(s => s.unsubscribe());
+    this.messageSubs = [];
     this.messageService.disconnectSSE();
     this.authService.clearUser();
     this.router.navigate(['/']);
@@ -406,6 +422,7 @@ export class NavComponent implements OnInit, OnDestroy {
           ...user,
           fullName
         });
+        this.cdr.detectChanges();
       }
     });
   }

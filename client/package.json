@@ -23,6 +23,8 @@
     "@angular/platform-server": "^19.2.0",
     "@angular/router": "^19.2.0",
     "@angular/ssr": "^19.2.13",
+    "@ctrl/ngx-emoji-mart": "^9.3.0",
+    "@emoji-mart/data": "^1.2.1",
     "@fortawesome/fontawesome-free": "^6.7.2",
     "@sweetalert2/ngx-sweetalert2": "^14.1.1",
     "event-source-polyfill": "^1.0.31",

@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Returned for every message — both in paginated history and in real-time SSE events.
@@ -42,4 +44,6 @@ public class DtoMessageResponse {
     private Long mediaSize;
     private boolean hasMedia;
     private byte[] mediaData;
+    private boolean edited;
+    private Map<String, String> reactions;
 }

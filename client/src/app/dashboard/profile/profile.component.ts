@@ -30,6 +30,7 @@ interface ProfileGenreDistribution {
 }
 
 const GENRE_COLORS = ['#1976D2', '#64B5F6', '#0D47A1', '#90CAF9', '#BBDEFB', '#42A5F5', '#1565C0'];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 @Component({
   selector: 'app-profile',
@@ -150,6 +151,12 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
   onProfilePictureChange(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      this.uploadError = 'Profile picture exceeds 10MB limit.';
+      return;
+    }
+
     this.uploadingPicture = true;
     this.uploadError = '';
     this.profileService.uploadProfilePicture(file).subscribe({
@@ -167,6 +174,12 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
   onWallpaperChange(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      this.uploadError = 'Cover photo exceeds 10MB limit.';
+      return;
+    }
+
     this.uploadingWallpaper = true;
     this.uploadError = '';
     this.profileService.uploadWallpaper(file).subscribe({

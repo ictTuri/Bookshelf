@@ -6,9 +6,10 @@ import {
   DtoMessageResponse,
   DtoConversationResponse,
   DtoMessageRequest,
+  DtoMessageUpdateRequest,
 } from '../../interfaces/message.interface';
 import { PageResponse } from '../../interfaces/page.interface';
-import { Subject, Observable } from 'rxjs';
+import { Subject, Observable, BehaviorSubject } from 'rxjs';
 import { AuthStateService } from '../auth/auth-state.service';
 
 @Injectable({
@@ -19,11 +20,14 @@ export class MessageService {
   private sseEmitter: EventSource | EventSourcePolyfill | null = null;
   private messageSubject = new Subject<DtoMessageResponse>();
   private messageReadSubject = new Subject<DtoMessageResponse>();
+  private connectionStateSubject = new BehaviorSubject<boolean>(false);
 
   /** Emits every incoming message received via SSE. */
   public message$ = this.messageSubject.asObservable();
   /** Emits whenever a message is marked read via SSE. */
   public messageRead$ = this.messageReadSubject.asObservable();
+  /** Emits true when SSE is connected, false otherwise. */
+  public isConnected$ = this.connectionStateSubject.asObservable();
 
   private refreshUnreadCountSubject = new Subject<void>();
   /** Emits when components should refresh their unread conversation counts. */
@@ -47,19 +51,27 @@ export class MessageService {
    */
   connectSSE(): void {
     if (this.sseEmitter) {
-      return; // Already connected
+      console.log('SSE: Already connected. Status:', this.sseEmitter.readyState);
+      return;
     }
 
     this.intentionalDisconnect = false;
+    console.log('SSE: Initiating connection...');
     this._openSSE();
   }
 
   private _openSSE(): void {
     const token = this.authState.getCurrentUser()?.token;
-    if (!token) return; // Not logged in — do not attempt
+    if (!token) {
+      console.warn('SSE: No token available, aborting connection.');
+      this.connectionStateSubject.next(false);
+      return;
+    }
 
+    const sseUrl = `${this.apiUrl}/connect`;
+    
     if (token) {
-      this.sseEmitter = new EventSourcePolyfill(`${this.apiUrl}/connect`, {
+      this.sseEmitter = new EventSourcePolyfill(sseUrl, {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: 'text/event-stream',
@@ -68,48 +80,81 @@ export class MessageService {
         heartbeatTimeout: 120000,
       });
     } else {
-      this.sseEmitter = new EventSource(`${this.apiUrl}/connect`, {
+      this.sseEmitter = new EventSource(sseUrl, {
         withCredentials: true,
       });
     }
 
-    // Reset back-off on a successful open
-    this.sseEmitter.addEventListener('open', () => {
+    this.sseEmitter.onopen = () => {
+      console.log('SSE: Connection established successfully.');
+      this.connectionStateSubject.next(true);
       this.reconnectDelay = 2000;
+    };
+
+    // Named event listeners
+    const eventTypes = ['NEW_MESSAGE', 'MESSAGE_READ', 'MESSAGE_UPDATED'];
+    eventTypes.forEach(type => {
+      this.sseEmitter?.addEventListener(type, (event: MessageEvent<string>) => {
+        if (type === 'MESSAGE_READ') {
+          this._handleIncomingRead(event.data);
+        } else {
+          this._handleIncomingMessage(event.data, type);
+        }
+      });
     });
 
-    // Listen for incoming messages
-    this.sseEmitter.addEventListener('NEW_MESSAGE', (event: MessageEvent<string>) => {
-      try {
-        const message = JSON.parse(event.data) as DtoMessageResponse;
-        this.ngZone.run(() => this.messageSubject.next(message));
-      } catch (error) {
-        console.error('Failed to parse NEW_MESSAGE event:', error);
-      }
-    });
-
-    // Listen for message read notifications
-    this.sseEmitter.addEventListener('MESSAGE_READ', (event: MessageEvent<string>) => {
-      try {
-        const message = JSON.parse(event.data) as DtoMessageResponse;
-        this.ngZone.run(() => this.messageReadSubject.next(message));
-      } catch (error) {
-        console.error('Failed to parse MESSAGE_READ event:', error);
-      }
+    // Catch-all for any event named 'message'
+    this.sseEmitter.addEventListener('message', (event: MessageEvent<string>) => {
+      console.log('SSE: Received generic "message" event:', event.data);
+      this._handleIncomingMessage(event.data, 'GENERIC_MESSAGE_EVENT');
     });
 
     // Ignore heartbeat
-    this.sseEmitter.addEventListener('heartbeat', () => { /* keep-alive */ });
+    this.sseEmitter.addEventListener('heartbeat', () => {
+      // Keep-alive comment from BE, do nothing.
+    });
 
-    // Handle connection errors — reconnect unless intentionally disconnected
-    this.sseEmitter.onerror = () => {
+    // Fallback for generic messages via onmessage property
+    this.sseEmitter.onmessage = (event: MessageEvent<string>) => {
+      console.log('SSE: Received data via onmessage:', event.data);
+      this._handleIncomingMessage(event.data, 'ONMESSAGE_CALLBACK');
+    };
+
+    this.sseEmitter.onerror = (error) => {
+      console.error('SSE: Connection error occurred:', error);
+      this.connectionStateSubject.next(false);
       this.sseEmitter?.close();
       this.sseEmitter = null;
 
       if (!this.intentionalDisconnect) {
+        console.log(`SSE: Attempting reconnect in ${this.reconnectDelay}ms...`);
         this._scheduleReconnect();
       }
     };
+  }
+
+  private _handleIncomingMessage(data: string, source: string): void {
+    try {
+      const message = JSON.parse(data) as DtoMessageResponse;
+      console.log(`SSE: Received message via ${source}:`, message.id);
+      this.ngZone.run(() => {
+        this.messageSubject.next(message);
+      });
+    } catch (error) {
+      console.error('SSE: Failed to parse incoming message data:', error);
+    }
+  }
+
+  private _handleIncomingRead(data: string): void {
+    try {
+      const message = JSON.parse(data) as DtoMessageResponse;
+      console.log('SSE: Received read notification:', message.id);
+      this.ngZone.run(() => {
+        this.messageReadSubject.next(message);
+      });
+    } catch (error) {
+      console.error('SSE: Failed to parse read notification data:', error);
+    }
   }
 
   private _scheduleReconnect(): void {
@@ -219,5 +264,18 @@ export class MessageService {
    */
   deleteMessage(messageId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${messageId}`);
+  }
+
+  /**
+   * Update a message (edit content or react).
+   */
+  updateMessage(
+    messageId: number,
+    request: DtoMessageUpdateRequest
+  ): Observable<DtoMessageResponse> {
+    return this.http.patch<DtoMessageResponse>(
+      `${this.apiUrl}/${messageId}`,
+      request
+    );
   }
 }
