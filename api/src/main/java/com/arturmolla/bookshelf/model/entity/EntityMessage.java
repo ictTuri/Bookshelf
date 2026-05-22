@@ -16,8 +16,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.util.Map;
 
 /**
  * A single message sent within a {@link EntityConversation}.
@@ -92,5 +95,12 @@ public class EntityMessage {
     @Column(name = "created_at", nullable = false)
     @Builder.Default
     private Instant createdAt = Instant.now();
-}
 
+    @Column(name = "edited", nullable = false)
+    @Builder.Default
+    private boolean edited = false;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private Map<String, String> reactions;
+}

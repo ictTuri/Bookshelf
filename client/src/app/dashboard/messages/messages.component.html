@@ -111,6 +111,7 @@
 
             @for (msg of messages; track msg.id) {
               <div class="message-item" [class.own]="msg.senderId !== friendId">
+                <div class="bubble-and-picker">
                 <div class="message-bubble">
                   @if (msg.replyTo) {
                     <div class="reply-preview">
@@ -128,30 +129,91 @@
                     </div>
                   }
                   @if (msg.content) {
-                    <p class="message-content">{{ msg.content }}</p>
+                      <p class="message-content">{{ msg.content }}</p>
                   }
                   <div class="message-meta">
-                    <span class="message-time">{{ timeAgo(msg.createdAt.toString()) }}</span>
+                    <span class="message-time">
+                      {{ timeAgo(msg.createdAt.toString()) }}
+                      @if (msg.edited) {
+                        <span class="edited-label">(edited)</span>
+                      }
+                    </span>
                     @if (msg.read) {
                       <i class="fas fa-check-double message-read-icon"></i>
                     }
                   </div>
-                </div>
-                <div class="message-actions">
-                <button class="message-action-btn" (click)="setReply(msg); messageInput.focus()" title="Reply">
+                  @if (getReactionEntries(msg.reactions).length > 0) {
+                    <div class="message-reactions">
+                      @for (entry of getReactionEntries(msg.reactions); track entry[0]) {
+                        <span class="reaction-pill">{{ entry[0] }}</span>
+                      }
+                    </div>
+                  }
+                  </div>
+
+                  @if (showReactionPickerId === msg.id) {
+                  <div class="reaction-picker-container" (click)="$event.stopPropagation()">
+                    @if (!showFullPicker) {
+                      <div class="quick-reactions">
+                        <button (click)="addQuickReaction('👍', msg.id)">👍</button>
+                        <button (click)="addQuickReaction('❤️', msg.id)">❤️</button>
+                        <button (click)="addQuickReaction('😂', msg.id)">😂</button>
+                        <button (click)="addQuickReaction('😮', msg.id)">😮</button>
+                        <button (click)="addQuickReaction('😢', msg.id)">😢</button>
+                        <button class="plus-btn" (click)="toggleFullPicker()" title="More reactions">
+                          <i class="fas fa-plus"></i>
+                        </button>
+                      </div>
+                    } @else {
+                      <emoji-mart
+                        (emojiSelect)="addReaction($event, msg.id)"
+                        [title]="'Pick your reaction…'"
+                        [emoji]="'point_up'"
+                        [isNative]="true"
+                        [set]="'apple'"
+                        [darkMode]="(isDarkMode$ | async) ?? false"
+                        [showPreview]="false"
+                        [emojiSize]="20"
+                        [perLine]="8">
+                      </emoji-mart>
+                    }
+                  </div>
+                  }
+                  </div>
+
+                  <div class="message-actions">
+                  <button class="message-action-btn" (click)="toggleReactionPicker(msg.id)" title="React">
+                    <i class="far fa-smile"></i>
+                  </button>
+                  <button class="message-action-btn" (click)="setReply(msg); messageInput.focus()" title="Reply">
                     <i class="fas fa-reply"></i>
                   </button>
                   @if (msg.senderId !== friendId) {
+                    <button class="message-action-btn" (click)="startEdit(msg)" title="Edit">
+                      <i class="fas fa-pen"></i>
+                    </button>
                     <button class="message-action-btn message-delete-btn" (click)="deleteMessage(msg.id)" title="Delete">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   }
-                </div>
-              </div>
+                  </div>
+                  </div>
             }
           </div>
 
           <div class="message-input-area">
+            @if (editingMessageId) {
+              <div class="edit-bar">
+                <div class="edit-bar-body">
+                  <span class="edit-bar-label"><i class="fas fa-pen"></i> Editing message</span>
+                  <span class="edit-bar-snippet">{{ messageText }}</span>
+                </div>
+                <button class="edit-bar-cancel" (click)="cancelEdit()" title="Cancel edit">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            }
+
             @if (replyingTo) {
               <div class="reply-bar">
                 <div class="reply-bar-body">
@@ -175,12 +237,12 @@
               </div>
             }
 
-            <div class="input-row">
+            <div class="input-row" [class.editing]="!!editingMessageId">
             <input
               #messageInput
               type="text"
               class="message-input"
-              placeholder="Type a message..."
+              [placeholder]="editingMessageId ? 'Edit your message...' : 'Type a message...'"
               [(ngModel)]="messageText"
               (keyup.enter)="sendMessage()"
               [disabled]="sendingMessage"
@@ -196,7 +258,7 @@
               class="attach-btn"
               type="button"
               (click)="mediaInput.click()"
-              [disabled]="sendingMessage"
+              [disabled]="sendingMessage || !!editingMessageId"
               title="Attach image"
             >
               <i class="fas fa-image"></i>
@@ -213,13 +275,13 @@
               class="send-btn"
               (click)="sendMessage()"
               [disabled]="(!messageText.trim() && !selectedFile) || sendingMessage"
-              title="Send message"
+              [title]="editingMessageId ? 'Save edit' : 'Send message'"
             >
               @if (sendingMessage) {
                 <i class="fas fa-spinner fa-spin"></i>
               }
               @if (!sendingMessage) {
-                <i class="fas fa-paper-plane"></i>
+                <i class="fas" [class.fa-paper-plane]="!editingMessageId" [class.fa-check]="!!editingMessageId"></i>
               }
             </button>
             </div>

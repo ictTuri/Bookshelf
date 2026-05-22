@@ -10,6 +10,12 @@ export interface DtoMessageRequest {
   replyToId?: number | null;
 }
 
+export interface DtoMessageUpdateRequest {
+  content?: string;
+  reactions?: Record<string, string>;
+  edited?: boolean;
+}
+
 export interface DtoMessageResponse {
   id: number;
   conversationId: number;
@@ -24,6 +30,8 @@ export interface DtoMessageResponse {
   mediaSize?: number | null;
   hasMedia?: boolean;
   mediaData?: string | null;
+  edited?: boolean;
+  reactions?: Record<string, string>;
 }
 
 export interface DtoConversationResponse {

@@ -5,6 +5,7 @@ import com.arturmolla.bookshelf.model.common.PageResponse;
 import com.arturmolla.bookshelf.model.dto.DtoConversationResponse;
 import com.arturmolla.bookshelf.model.dto.DtoMessageRequest;
 import com.arturmolla.bookshelf.model.dto.DtoMessageResponse;
+import com.arturmolla.bookshelf.model.dto.DtoMessageUpdateRequest;
 import com.arturmolla.bookshelf.service.ServiceMessage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,25 +45,37 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  *   │                                     │                                │
  *   │                                     │◀── PATCH /messages/{id}/read ──│
  *   │◀─ SSE "MESSAGE_READ" ───────────────│                                │
+ *   │                                     │                                │
+ *   │── PATCH /messages/{id} ────────────▶│  update EntityMessage          │
+ *   │◀─ 200 DtoMessageResponse ───────────│                                │
+ *   │                                     │──▶ SSE "MESSAGE_UPDATED" ──────▶│
  * </pre>
  *
  * <h2>SSE event names</h2>
  * <ul>
- *   <li>{@code NEW_MESSAGE}  – pushed to the recipient when a friend sends a message</li>
- *   <li>{@code MESSAGE_READ} – pushed to the sender when the recipient marks a message as read</li>
- *   <li>{@code heartbeat}    – keep-alive comment; the front end can safely ignore it</li>
+ *   <li>{@code NEW_MESSAGE}     – pushed to the recipient when a friend sends a message</li>
+ *   <li>{@code MESSAGE_READ}    – pushed to the sender when the recipient marks a message as read</li>
+ *   <li>{@code MESSAGE_UPDATED} – pushed to both participants when a message is edited or reacted to</li>
+ *   <li>{@code heartbeat}       – keep-alive comment; the front end can safely ignore it</li>
  * </ul>
  *
  * <h2>Front-end usage</h2>
  * <pre>
  * // Open the SSE channel once (e.g. in App.jsx on login)
  * const es = new EventSource('/messages/connect', { withCredentials: true });
- * es.addEventListener('NEW_MESSAGE',  e => appendMessage(JSON.parse(e.data)));
- * es.addEventListener('MESSAGE_READ', e => updateReadStatus(JSON.parse(e.data)));
- * es.addEventListener('heartbeat',    () => {});   // keep-alive – ignore
+ * es.addEventListener('NEW_MESSAGE',     e => appendMessage(JSON.parse(e.data)));
+ * es.addEventListener('MESSAGE_READ',    e => updateReadStatus(JSON.parse(e.data)));
+ * es.addEventListener('MESSAGE_UPDATED', e => updateMessage(JSON.parse(e.data)));
+ * es.addEventListener('heartbeat',       () => {});   // keep-alive – ignore
  *
  * // Send a message
  * await axios.post(`/messages/${friendId}`, { content: 'Hey!' });
+ *
+ * // Edit a message
+ * await axios.patch(`/messages/${messageId}`, { content: 'New content' });
+ *
+ * // React to a message
+ * await axios.patch(`/messages/${messageId}`, { reactions: { '👍': 'user1', '❤️': 'user2' } });
  *
  * // Fetch history
  * const { data } = await axios.get(`/messages/conversations/${friendId}?page=0&amp;size=50`);
@@ -171,6 +185,30 @@ public class ControllerMessage {
             Authentication connectedUser
     ) {
         return ResponseEntity.ok(serviceMessage.getMessages(friendId, page, size, connectedUser));
+    }
+
+    // =========================================================================
+    // Update a message (edit or react)
+    // =========================================================================
+
+    /**
+     * Updates a message content or its reactions.
+     * <p>
+     * Set edited to true when editing the text.
+     *
+     * @param messageId ID of the message to update
+     * @param request The request containing the new content and reactions
+     */
+    @PatchMapping("/{messageId}")
+    @Operation(summary = "Update a message (edit text or react)")
+    @RateLimit(capacity = 60, refillTokens = 60, refillDurationMinutes = 1)
+    public ResponseEntity<DtoMessageResponse> updateMessage(
+            @Parameter(description = "ID of the message to update")
+            @PathVariable Long messageId,
+            @RequestBody DtoMessageUpdateRequest request,
+            Authentication connectedUser
+    ) {
+        return ResponseEntity.ok(serviceMessage.updateMessage(messageId, request, connectedUser));
     }
 
     // =========================================================================

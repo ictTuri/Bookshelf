@@ -6,6 +6,7 @@ import com.arturmolla.bookshelf.model.dto.DtoConversationResponse;
 import com.arturmolla.bookshelf.model.dto.DtoMessageReplySnippet;
 import com.arturmolla.bookshelf.model.dto.DtoMessageRequest;
 import com.arturmolla.bookshelf.model.dto.DtoMessageResponse;
+import com.arturmolla.bookshelf.model.dto.DtoMessageUpdateRequest;
 import com.arturmolla.bookshelf.model.entity.EntityConversation;
 import com.arturmolla.bookshelf.model.entity.EntityMessage;
 import com.arturmolla.bookshelf.model.user.User;
@@ -55,6 +56,7 @@ public class ServiceMessage {
     // ─── SSE event name constants ─────────────────────────────────────────────
     public static final String EVENT_NEW_MESSAGE  = "NEW_MESSAGE";
     public static final String EVENT_MESSAGE_READ = "MESSAGE_READ";
+    public static final String EVENT_MESSAGE_UPDATED = "MESSAGE_UPDATED";
 
     // ─── Dependencies ─────────────────────────────────────────────────────────
     private final RepositoryConversation repositoryConversation;
@@ -276,6 +278,56 @@ public class ServiceMessage {
     }
 
     // =========================================================================
+    // Update a message
+    // =========================================================================
+
+    /**
+     * Updates a message content or its reactions.
+     * <p>
+     * Set edited to true when editing the text.
+     */
+    public DtoMessageResponse updateMessage(Long messageId, DtoMessageUpdateRequest request, Authentication auth) {
+        User user = principal(auth);
+        EntityMessage message = repositoryMessage.findById(messageId)
+                .orElseThrow(() -> new EntityNotFoundException("Message not found: " + messageId));
+
+        Long recipientId = otherParticipantId(message.getConversation(), message.getSender().getId());
+        Long otherParticipant = Objects.equals(user.getId(), message.getSender().getId()) ? recipientId : message.getSender().getId();
+
+        // If the user isn't the sender or the recipient, they can't do anything
+        if (!Objects.equals(user.getId(), message.getSender().getId()) && !Objects.equals(user.getId(), recipientId)) {
+            throw new OperationNotPermittedException("Not permitted to modify this message.");
+        }
+
+        boolean updated = false;
+
+        if (request.getContent() != null) {
+            if (!Objects.equals(user.getId(), message.getSender().getId())) {
+                 throw new OperationNotPermittedException("Only the sender can edit the message content.");
+            }
+            String encryptedContent = encryptionUtil.encrypt(request.getContent());
+            if (!Objects.equals(encryptedContent, message.getContent())) {
+                message.setContent(encryptedContent);
+                message.setEdited(true);
+                updated = true;
+            }
+        }
+
+        if (request.getReactions() != null) {
+            message.setReactions(request.getReactions());
+            updated = true;
+        }
+
+        if (updated) {
+            message = repositoryMessage.save(message);
+            // Push update to the other participant
+            pushToUser(otherParticipant, EVENT_MESSAGE_UPDATED, toMessageDto(message));
+        }
+
+        return toMessageDto(message);
+    }
+
+    // =========================================================================
     // Mark a single message as read
     // =========================================================================
 
@@ -409,7 +461,9 @@ public class ServiceMessage {
                 .mediaType(m.getMediaType())
                 .mediaName(m.getMediaName())
                 .mediaSize(m.getMediaSize())
-                .hasMedia(m.getMediaData() != null);
+                .hasMedia(m.getMediaData() != null)
+                .edited(m.isEdited())
+                .reactions(m.getReactions());
 
         if (m.getMediaType() != null && m.getMediaType().startsWith("image")) {
             builder.mediaData(m.getMediaData());
