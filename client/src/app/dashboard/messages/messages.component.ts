@@ -46,6 +46,13 @@ export class MessagesComponent implements OnInit, OnDestroy {
   showReactionPickerId: number | null = null;
   showFullPicker = false;
 
+  // Mobile long-press
+  mobileOptionsMessageId: number | null = null;
+  mobileOptionsPosition: 'above' | 'below' = 'above';
+  mobileShowReactions = false;
+  private touchTimer: any;
+  private longPressDuration = 500; // ms
+
   isDarkMode$: Observable<boolean>;
 
   @ViewChild('messageInput') messageInput!: ElementRef<HTMLInputElement>;
@@ -71,6 +78,72 @@ export class MessagesComponent implements OnInit, OnDestroy {
         this.showReactionPickerId = null;
         this.showFullPicker = false;
       }
+    }
+    if (this.mobileOptionsMessageId !== null) {
+       const target = event.target as HTMLElement;
+       if (!target.closest('.mobile-message-options') && !target.closest('.message-bubble')) {
+         this.closeMobileOptions();
+       }
+    }
+  }
+
+  onTouchStart(event: TouchEvent, messageId: number): void {
+    const target = event.target as HTMLElement;
+    if (target.closest('.mobile-message-options') || 
+        target.closest('.reaction-picker-container') ||
+        target.closest('.add-reaction-inline')) {
+      return;
+    }
+
+    const touch = event.touches[0];
+    const viewHeight = window.innerHeight;
+    // If message is in the top 40% of screen, show options below it
+    this.mobileOptionsPosition = touch.clientY < (viewHeight * 0.4) ? 'below' : 'above';
+
+    this.touchTimer = setTimeout(() => {
+      this.mobileOptionsMessageId = messageId;
+      this.mobileShowReactions = false;
+      // Vibrate if supported
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50);
+      }
+      this.cdr.detectChanges();
+    }, this.longPressDuration);
+  }
+
+  onTouchEnd(): void {
+    if (this.touchTimer) {
+      clearTimeout(this.touchTimer);
+    }
+  }
+
+  onTouchMove(): void {
+    if (this.touchTimer) {
+      clearTimeout(this.touchTimer);
+    }
+  }
+
+  closeMobileOptions(): void {
+    this.mobileOptionsMessageId = null;
+    this.mobileShowReactions = false;
+  }
+
+  onMobileAction(action: 'react' | 'reply' | 'edit' | 'delete', msg: DtoMessageResponse): void {
+    this.closeMobileOptions();
+    switch (action) {
+      case 'react':
+        this.toggleReactionPicker(msg.id);
+        break;
+      case 'reply':
+        this.setReply(msg);
+        this.messageInput.nativeElement.focus();
+        break;
+      case 'edit':
+        this.startEdit(msg);
+        break;
+      case 'delete':
+        this.deleteMessage(msg.id);
+        break;
     }
   }
 

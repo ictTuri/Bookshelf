@@ -2,8 +2,8 @@ package com.arturmolla.bookshelf.service;
 
 import com.arturmolla.bookshelf.config.exceptions.OperationNotPermittedException;
 import com.arturmolla.bookshelf.model.common.PageResponse;
-import com.arturmolla.bookshelf.model.dto.DtoAppFeedback;
 import com.arturmolla.bookshelf.model.dto.AppFeedbackRequest;
+import com.arturmolla.bookshelf.model.dto.DtoAppFeedback;
 import com.arturmolla.bookshelf.model.dto.DtoComment;
 import com.arturmolla.bookshelf.model.entity.EntityAppFeedback;
 import com.arturmolla.bookshelf.model.entity.EntityAppFeedbackComment;
@@ -44,7 +44,7 @@ public class AppFeedbackService {
         var user = (User) connectedUser.getPrincipal();
         EntityAppFeedback feedback = mapperAppFeedback.toEntity(request);
         EntityAppFeedback saved = repositoryAppFeedback.save(feedback);
-        return mapperAppFeedback.toDto(saved, user.getId());
+        return mapperAppFeedback.toDto(saved, user.getId(), user.getFullName());
     }
 
     public PageResponse<DtoAppFeedback> getAll(int page, int size, Authentication connectedUser) {
@@ -52,7 +52,12 @@ public class AppFeedbackService {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
         Page<EntityAppFeedback> feedbacks = repositoryAppFeedback.findAll(pageable);
         List<DtoAppFeedback> content = feedbacks.stream()
-                .map(f -> mapperAppFeedback.toDto(f, user.getId()))
+                .map(f -> {
+                    String authorName = repositoryUser.findById(f.getCreatedBy())
+                            .map(User::getFullName)
+                            .orElse("Unknown");
+                    return mapperAppFeedback.toDto(f, user.getId(), authorName);
+                })
                 .toList();
         return new PageResponse<>(
                 content,
@@ -69,7 +74,10 @@ public class AppFeedbackService {
         var user = (User) connectedUser.getPrincipal();
         EntityAppFeedback feedback = repositoryAppFeedback.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(FEEDBACK_NOT_FOUND + id));
-        return mapperAppFeedback.toDto(feedback, user.getId());
+        String authorName = repositoryUser.findById(feedback.getCreatedBy())
+                .map(User::getFullName)
+                .orElse("Unknown");
+        return mapperAppFeedback.toDto(feedback, user.getId(), authorName);
     }
 
     public DtoAppFeedback upvote(Long id, Authentication connectedUser) {
@@ -94,7 +102,10 @@ public class AppFeedbackService {
                     )
             );
         }
-        return mapperAppFeedback.toDto(repositoryAppFeedback.save(feedback), user.getId());
+        String authorName = repositoryUser.findById(feedback.getCreatedBy())
+                .map(User::getFullName)
+                .orElse("Unknown");
+        return mapperAppFeedback.toDto(repositoryAppFeedback.save(feedback), user.getId(), authorName);
     }
 
     public DtoAppFeedback edit(Long id, AppFeedbackRequest request, Authentication connectedUser) {
@@ -107,7 +118,10 @@ public class AppFeedbackService {
         }
         feedback.setTitle(request.title());
         feedback.setDescription(request.description());
-        return mapperAppFeedback.toDto(repositoryAppFeedback.save(feedback), user.getId());
+        String authorName = repositoryUser.findById(feedback.getCreatedBy())
+                .map(User::getFullName)
+                .orElse("Unknown");
+        return mapperAppFeedback.toDto(repositoryAppFeedback.save(feedback), user.getId(), authorName);
     }
 
     public DtoAppFeedback addComment(Long id, DtoComment commentDto, Authentication connectedUser) {
@@ -134,8 +148,10 @@ public class AppFeedbackService {
                         "FEEDBACK"
                 )
         );
-
-        return mapperAppFeedback.toDto(repositoryAppFeedback.save(feedback), user.getId());
+        String authorName = repositoryUser.findById(feedback.getCreatedBy())
+                .map(User::getFullName)
+                .orElse("Unknown");
+        return mapperAppFeedback.toDto(repositoryAppFeedback.save(feedback), user.getId(), authorName);
     }
 
     public void delete(Long id, Authentication connectedUser) {
@@ -157,7 +173,10 @@ public class AppFeedbackService {
         EntityAppFeedback feedback = repositoryAppFeedback.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(FEEDBACK_NOT_FOUND + id));
         feedback.setStatus(status);
-        return mapperAppFeedback.toDto(repositoryAppFeedback.save(feedback), user.getId());
+        String authorName = repositoryUser.findById(feedback.getCreatedBy())
+                .map(User::getFullName)
+                .orElse("Unknown");
+        return mapperAppFeedback.toDto(repositoryAppFeedback.save(feedback), user.getId(), authorName);
     }
 
     public PageResponse<DtoAppFeedback> getMyFeedbacks(int page, int size, Authentication connectedUser) {
@@ -165,7 +184,12 @@ public class AppFeedbackService {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
         Page<EntityAppFeedback> feedbacks = repositoryAppFeedback.findAllByCreatedBy(user.getId(), pageable);
         List<DtoAppFeedback> content = feedbacks.stream()
-                .map(f -> mapperAppFeedback.toDto(f, user.getId()))
+                .map(f -> {
+                    String authorName = repositoryUser.findById(f.getCreatedBy())
+                            .map(User::getFullName)
+                            .orElse("Unknown");
+                    return mapperAppFeedback.toDto(f, user.getId(), authorName);
+                })
                 .toList();
         return new PageResponse<>(
                 content,
@@ -183,7 +207,12 @@ public class AppFeedbackService {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
         Page<EntityAppFeedback> feedbacks = repositoryAppFeedback.findAllByStatus(status, pageable);
         List<DtoAppFeedback> content = feedbacks.stream()
-                .map(f -> mapperAppFeedback.toDto(f, user.getId()))
+                .map(f -> {
+                    String authorName = repositoryUser.findById(f.getCreatedBy())
+                            .map(User::getFullName)
+                            .orElse("Unknown");
+                    return mapperAppFeedback.toDto(f, user.getId(), authorName);
+                })
                 .toList();
         return new PageResponse<>(
                 content,

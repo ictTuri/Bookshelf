@@ -161,6 +161,20 @@ export class HomePostService {
   }
 
   /**
+   * Edit a comment (comment author only).
+   */
+  updateComment(postId: number, commentId: number, request: DtoPostCommentRequest): Observable<DtoPostCommentResponse> {
+    return this.http.put<DtoPostCommentResponse>(`${this.baseUrl}/${postId}/comments/${commentId}`, request);
+  }
+
+  /**
+   * Delete a comment (comment author or post author).
+   */
+  deleteComment(postId: number, commentId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${postId}/comments/${commentId}`);
+  }
+
+  /**
    * Get paged comments for a post.
    */
   getComments(postId: number, page: number = 0, size: number = 20): Observable<PageResponse<DtoPostCommentResponse>> {

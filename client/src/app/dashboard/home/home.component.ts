@@ -75,6 +75,19 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewChecked {
   commentSubmittingByPostId: Record<number, boolean> = {};
   likeLoadingByPostId: Record<number, boolean> = {};
 
+  // Comment Editing
+  editingCommentId: number | null = null;
+  commentEditDraft: string = '';
+  commentEditLoading: boolean = false;
+
+  // Confirm Modal
+  showConfirmModal: boolean = false;
+  confirmModalTitle: string = '';
+  confirmModalMessage: string = '';
+  confirmActionType: 'DELETE_POST' | 'DELETE_COMMENT' | null = null;
+  pendingDeleteItem: any = null;
+  pendingDeleteParentItem: any = null;
+
   // Subscriptions
   private subscriptions: Subscription = new Subscription();
 
@@ -629,18 +642,20 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   // Delete Post
   deletePost(post: HomePost): void {
-    if (confirm('Are you sure you want to delete this post?')) {
-      this.homePostService.deletePost(post.id).subscribe({
-        next: () => {
-          console.log('Post deleted successfully');
-          this.loadUserPosts(this.currentPage);
-        },
-        error: (error: HttpErrorResponse) => {
-          console.error('Error deleting post:', error);
-          this.error = 'Failed to delete post. You may not have permission.';
-        }
-      });
-    }
+    this.openConfirmModal('DELETE_POST', post);
+  }
+
+  private performDeletePost(post: HomePost): void {
+    this.homePostService.deletePost(post.id).subscribe({
+      next: () => {
+        console.log('Post deleted successfully');
+        this.loadUserPosts(this.currentPage);
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('Error deleting post:', error);
+        this.error = 'Failed to delete post. You may not have permission.';
+      }
+    });
   }
 
   // Check if current user is post owner
@@ -714,6 +729,113 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   updateCommentDraft(postId: number, value: string): void {
     this.commentDraftByPostId[postId] = value;
+  }
+
+  isCommentOwner(comment: DtoPostCommentResponse): boolean {
+    const currentUser = this.authState.getCurrentUser();
+    return currentUser?.email?.toLowerCase() === comment.authorEmail?.toLowerCase();
+  }
+
+  canDeleteComment(comment: DtoPostCommentResponse, post: HomePost): boolean {
+    return this.isCommentOwner(comment) || this.isPostOwner(post);
+  }
+
+  startEditComment(comment: DtoPostCommentResponse): void {
+    this.editingCommentId = comment.id;
+    this.commentEditDraft = comment.content;
+  }
+
+  cancelEditComment(): void {
+    this.editingCommentId = null;
+    this.commentEditDraft = '';
+  }
+
+  saveEditComment(comment: DtoPostCommentResponse, post: HomePost): void {
+    const content = this.commentEditDraft.trim();
+    if (!content || this.commentEditLoading) return;
+    
+    if (content === comment.content) {
+      this.cancelEditComment();
+      return;
+    }
+
+    this.commentEditLoading = true;
+    const request: DtoPostCommentRequest = { content };
+
+    this.homePostService.updateComment(post.id, comment.id, request).subscribe({
+      next: (updatedComment) => {
+        const comments = this.commentsByPostId[post.id];
+        if (comments) {
+          const index = comments.findIndex(c => c.id === comment.id);
+          if (index !== -1) {
+            comments[index] = updatedComment;
+          }
+        }
+        this.commentEditLoading = false;
+        this.cancelEditComment();
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('Error updating comment:', error);
+        this.commentEditLoading = false;
+      }
+    });
+  }
+
+  deleteComment(comment: DtoPostCommentResponse, post: HomePost): void {
+    this.openConfirmModal('DELETE_COMMENT', comment, post);
+  }
+
+  // Confirm Modal Methods
+  openConfirmModal(type: 'DELETE_POST' | 'DELETE_COMMENT', item: any, parent: any = null): void {
+    this.confirmActionType = type;
+    this.pendingDeleteItem = item;
+    this.pendingDeleteParentItem = parent;
+    
+    if (type === 'DELETE_POST') {
+      this.confirmModalTitle = 'Delete Post';
+      this.confirmModalMessage = 'Are you sure you want to delete this post? This action cannot be undone.';
+    } else {
+      this.confirmModalTitle = 'Delete Comment';
+      this.confirmModalMessage = 'Are you sure you want to delete this comment?';
+    }
+    
+    this.showConfirmModal = true;
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeConfirmModal(): void {
+    this.showConfirmModal = false;
+    this.confirmActionType = null;
+    this.pendingDeleteItem = null;
+    this.pendingDeleteParentItem = null;
+    document.body.style.overflow = 'auto';
+  }
+
+  executeConfirmAction(): void {
+    if (!this.confirmActionType || !this.pendingDeleteItem) return;
+
+    if (this.confirmActionType === 'DELETE_POST') {
+      this.performDeletePost(this.pendingDeleteItem);
+    } else if (this.confirmActionType === 'DELETE_COMMENT') {
+      this.performDeleteComment(this.pendingDeleteItem, this.pendingDeleteParentItem);
+    }
+    
+    this.closeConfirmModal();
+  }
+
+  private performDeleteComment(comment: DtoPostCommentResponse, post: HomePost): void {
+    this.homePostService.deleteComment(post.id, comment.id).subscribe({
+      next: () => {
+        const comments = this.commentsByPostId[post.id];
+        if (comments) {
+          this.commentsByPostId[post.id] = comments.filter(c => c.id !== comment.id);
+        }
+        post.commentCount = Math.max(0, (post.commentCount ?? 0) - 1);
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('Error deleting comment:', error);
+      }
+    });
   }
 
   submitComment(post: HomePost): void {

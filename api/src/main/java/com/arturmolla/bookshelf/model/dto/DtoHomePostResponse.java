@@ -2,7 +2,7 @@ package com.arturmolla.bookshelf.model.dto;
 
 import lombok.Builder;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Builder
@@ -13,8 +13,8 @@ public record DtoHomePostResponse(
         String authorName,
         Long authorId,
         String authorEmail,
-        LocalDateTime createdDate,
-        LocalDateTime lastModifiedDate,
+        Instant createdDate,
+        Instant lastModifiedDate,
         List<DtoAttachmentResponse> attachments,
         long likeCount,
         long commentCount,

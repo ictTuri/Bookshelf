@@ -17,7 +17,7 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -33,12 +33,12 @@ public class EntityBase {
     private Long id;
     @CreatedDate
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdDate;
+    private Instant createdDate;
     @LastModifiedDate
     @Column(insertable = false)
-    private LocalDateTime lastModifiedDate;
+    private Instant lastModifiedDate;
     @CreatedBy
-    @Column(nullable = false, updatable = false)
+    @Column(updatable = false)
     private Long createdBy;
     @LastModifiedBy
     @Column(insertable = false)

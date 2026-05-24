@@ -3,7 +3,7 @@ package com.arturmolla.bookshelf.model.dto;
 import com.arturmolla.bookshelf.model.enums.NotificationType;
 import lombok.Builder;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Builder
 public record DtoNotificationResponse(
@@ -16,7 +16,6 @@ public record DtoNotificationResponse(
         String referenceType,
         Long actorId,
         String actorName,
-        LocalDateTime createdAt
+        Instant createdAt
 ) {
 }
-

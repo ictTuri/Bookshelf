@@ -10,6 +10,7 @@ import com.arturmolla.bookshelf.model.enums.AppFeedbackStatus;
 import com.arturmolla.bookshelf.model.user.Role;
 import com.arturmolla.bookshelf.model.user.User;
 import com.arturmolla.bookshelf.repository.RepositoryAppFeedback;
+import com.arturmolla.bookshelf.repository.RepositoryUser;
 import com.arturmolla.bookshelf.service.mapper.MapperAppFeedback;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +37,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -51,7 +53,13 @@ class AppFeedbackServiceTest {
     private RepositoryAppFeedback repositoryAppFeedback;
 
     @Mock
+    private RepositoryUser repositoryUser;
+
+    @Mock
     private MapperAppFeedback mapperAppFeedback;
+    
+    @Mock
+    private ServiceNotification serviceNotification;
 
     @InjectMocks
     private AppFeedbackService appFeedbackService;
@@ -106,6 +114,8 @@ class AppFeedbackServiceTest {
                 .status(AppFeedbackStatus.NEW)
                 .upvoteCount(0)
                 .ownFeedback(true)
+                .createdBy("John Doe")
+                .creatorId(1L)
                 .build();
 
         // Configure userAuth
@@ -117,6 +127,9 @@ class AppFeedbackServiceTest {
         when(adminAuth.getPrincipal()).thenReturn(adminUser);
         when(adminAuth.getAuthorities()).thenAnswer(inv ->
                 adminUser.getAuthorities().stream().toList());
+                
+        when(repositoryUser.findById(1L)).thenReturn(Optional.of(regularUser));
+        when(repositoryUser.findById(2L)).thenReturn(Optional.of(adminUser));
     }
 
     /**
@@ -153,13 +166,13 @@ class AppFeedbackServiceTest {
             AppFeedbackRequest request = new AppFeedbackRequest("Test Bug", "Something is broken");
             when(mapperAppFeedback.toEntity(request)).thenReturn(feedback);
             when(repositoryAppFeedback.save(feedback)).thenReturn(feedback);
-            when(mapperAppFeedback.toDto(feedback, 1L)).thenReturn(feedbackDto);
+            when(mapperAppFeedback.toDto(eq(feedback), eq(1L), anyString())).thenReturn(feedbackDto);
 
             DtoAppFeedback result = appFeedbackService.save(request, userAuth);
 
             assertThat(result).isEqualTo(feedbackDto);
             verify(repositoryAppFeedback).save(feedback);
-            verify(mapperAppFeedback).toDto(feedback, 1L);
+            verify(mapperAppFeedback).toDto(feedback, 1L, "John Doe");
         }
     }
 
@@ -175,7 +188,7 @@ class AppFeedbackServiceTest {
         void getAll_returnsPaginatedFeedbacks() {
             var page = new PageImpl<>(List.of(feedback));
             when(repositoryAppFeedback.findAll(any(Pageable.class))).thenReturn(page);
-            when(mapperAppFeedback.toDto(eq(feedback), eq(1L))).thenReturn(feedbackDto);
+            when(mapperAppFeedback.toDto(eq(feedback), eq(1L), anyString())).thenReturn(feedbackDto);
 
             PageResponse<DtoAppFeedback> result = appFeedbackService.getAll(0, 15, userAuth);
 
@@ -208,7 +221,7 @@ class AppFeedbackServiceTest {
         @DisplayName("returns feedback DTO when found")
         void getById_returnsFeedback_whenFound() {
             when(repositoryAppFeedback.findById(10L)).thenReturn(Optional.of(feedback));
-            when(mapperAppFeedback.toDto(feedback, 1L)).thenReturn(feedbackDto);
+            when(mapperAppFeedback.toDto(eq(feedback), eq(1L), anyString())).thenReturn(feedbackDto);
 
             DtoAppFeedback result = appFeedbackService.getById(10L, userAuth);
 
@@ -238,7 +251,7 @@ class AppFeedbackServiceTest {
         void upvote_addsUpvote_whenNotYetUpvoted() {
             when(repositoryAppFeedback.findById(10L)).thenReturn(Optional.of(feedback));
             when(repositoryAppFeedback.save(any())).thenReturn(feedback);
-            when(mapperAppFeedback.toDto(any(), eq(1L))).thenReturn(feedbackDto);
+            when(mapperAppFeedback.toDto(any(), eq(1L), anyString())).thenReturn(feedbackDto);
 
             appFeedbackService.upvote(10L, userAuth);
 
@@ -251,7 +264,7 @@ class AppFeedbackServiceTest {
             feedback.getUpvotedBy().add(1L);
             when(repositoryAppFeedback.findById(10L)).thenReturn(Optional.of(feedback));
             when(repositoryAppFeedback.save(any())).thenReturn(feedback);
-            when(mapperAppFeedback.toDto(any(), eq(1L))).thenReturn(feedbackDto);
+            when(mapperAppFeedback.toDto(any(), eq(1L), anyString())).thenReturn(feedbackDto);
 
             appFeedbackService.upvote(10L, userAuth);
 
@@ -272,7 +285,7 @@ class AppFeedbackServiceTest {
         void upvote_multipleUsers() {
             when(repositoryAppFeedback.findById(10L)).thenReturn(Optional.of(feedback));
             when(repositoryAppFeedback.save(any())).thenReturn(feedback);
-            when(mapperAppFeedback.toDto(any(), any())).thenReturn(feedbackDto);
+            when(mapperAppFeedback.toDto(any(), any(), anyString())).thenReturn(feedbackDto);
 
             appFeedbackService.upvote(10L, userAuth);  // user 1 upvotes
 
@@ -300,7 +313,7 @@ class AppFeedbackServiceTest {
             AppFeedbackRequest request = new AppFeedbackRequest("Updated Title", "Updated Description");
             when(repositoryAppFeedback.findById(10L)).thenReturn(Optional.of(feedback));
             when(repositoryAppFeedback.save(any())).thenReturn(feedback);
-            when(mapperAppFeedback.toDto(any(), eq(1L))).thenReturn(feedbackDto);
+            when(mapperAppFeedback.toDto(any(), eq(1L), anyString())).thenReturn(feedbackDto);
 
             appFeedbackService.edit(10L, request, userAuth);
 
@@ -315,7 +328,7 @@ class AppFeedbackServiceTest {
             AppFeedbackRequest request = new AppFeedbackRequest("Admin Edit", "Admin changed this");
             when(repositoryAppFeedback.findById(10L)).thenReturn(Optional.of(feedback));
             when(repositoryAppFeedback.save(any())).thenReturn(feedback);
-            when(mapperAppFeedback.toDto(any(), eq(2L))).thenReturn(feedbackDto);
+            when(mapperAppFeedback.toDto(any(), eq(2L), anyString())).thenReturn(feedbackDto);
 
             appFeedbackService.edit(10L, request, adminAuth);
 
@@ -365,7 +378,7 @@ class AppFeedbackServiceTest {
             DtoComment commentDto = DtoComment.builder().message("Great feedback!").build();
             when(repositoryAppFeedback.findById(10L)).thenReturn(Optional.of(feedback));
             when(repositoryAppFeedback.save(any())).thenReturn(feedback);
-            when(mapperAppFeedback.toDto(any(), eq(1L))).thenReturn(feedbackDto);
+            when(mapperAppFeedback.toDto(any(), eq(1L), anyString())).thenReturn(feedbackDto);
 
             appFeedbackService.addComment(10L, commentDto, userAuth);
 
@@ -380,7 +393,7 @@ class AppFeedbackServiceTest {
         void addComment_multipleComments() {
             when(repositoryAppFeedback.findById(10L)).thenReturn(Optional.of(feedback));
             when(repositoryAppFeedback.save(any())).thenReturn(feedback);
-            when(mapperAppFeedback.toDto(any(), any())).thenReturn(feedbackDto);
+            when(mapperAppFeedback.toDto(any(), any(), anyString())).thenReturn(feedbackDto);
 
             appFeedbackService.addComment(10L, DtoComment.builder().message("First").build(), userAuth);
             appFeedbackService.addComment(10L, DtoComment.builder().message("Second").build(), userAuth);
@@ -466,7 +479,7 @@ class AppFeedbackServiceTest {
         void changeStatus_success_toInProgress() {
             when(repositoryAppFeedback.findById(10L)).thenReturn(Optional.of(feedback));
             when(repositoryAppFeedback.save(any())).thenReturn(feedback);
-            when(mapperAppFeedback.toDto(any(), eq(2L))).thenReturn(feedbackDto);
+            when(mapperAppFeedback.toDto(any(), eq(2L), anyString())).thenReturn(feedbackDto);
 
             appFeedbackService.changeStatus(10L, AppFeedbackStatus.IN_PROGRESS, adminAuth);
 
@@ -479,7 +492,7 @@ class AppFeedbackServiceTest {
         void changeStatus_success_toResolved() {
             when(repositoryAppFeedback.findById(10L)).thenReturn(Optional.of(feedback));
             when(repositoryAppFeedback.save(any())).thenReturn(feedback);
-            when(mapperAppFeedback.toDto(any(), eq(2L))).thenReturn(feedbackDto);
+            when(mapperAppFeedback.toDto(any(), eq(2L), anyString())).thenReturn(feedbackDto);
 
             appFeedbackService.changeStatus(10L, AppFeedbackStatus.RESOLVED, adminAuth);
 
@@ -491,7 +504,7 @@ class AppFeedbackServiceTest {
         void changeStatus_success_toClosed() {
             when(repositoryAppFeedback.findById(10L)).thenReturn(Optional.of(feedback));
             when(repositoryAppFeedback.save(any())).thenReturn(feedback);
-            when(mapperAppFeedback.toDto(any(), eq(2L))).thenReturn(feedbackDto);
+            when(mapperAppFeedback.toDto(any(), eq(2L), anyString())).thenReturn(feedbackDto);
 
             appFeedbackService.changeStatus(10L, AppFeedbackStatus.CLOSED, adminAuth);
 
@@ -531,7 +544,7 @@ class AppFeedbackServiceTest {
         void getMyFeedbacks_returnsOwnFeedbacks() {
             var page = new PageImpl<>(List.of(feedback));
             when(repositoryAppFeedback.findAllByCreatedBy(eq(1L), any(Pageable.class))).thenReturn(page);
-            when(mapperAppFeedback.toDto(eq(feedback), eq(1L))).thenReturn(feedbackDto);
+            when(mapperAppFeedback.toDto(eq(feedback), eq(1L), anyString())).thenReturn(feedbackDto);
 
             PageResponse<DtoAppFeedback> result = appFeedbackService.getMyFeedbacks(0, 15, userAuth);
 
@@ -563,7 +576,7 @@ class AppFeedbackServiceTest {
         void getAllByStatus_returnsFilteredFeedbacks() {
             var page = new PageImpl<>(List.of(feedback));
             when(repositoryAppFeedback.findAllByStatus(eq(AppFeedbackStatus.NEW), any(Pageable.class))).thenReturn(page);
-            when(mapperAppFeedback.toDto(eq(feedback), eq(2L))).thenReturn(feedbackDto);
+            when(mapperAppFeedback.toDto(eq(feedback), eq(2L), anyString())).thenReturn(feedbackDto);
 
             PageResponse<DtoAppFeedback> result = appFeedbackService.getAllByStatus(AppFeedbackStatus.NEW, 0, 15, adminAuth);
 
@@ -582,4 +595,3 @@ class AppFeedbackServiceTest {
         }
     }
 }
-

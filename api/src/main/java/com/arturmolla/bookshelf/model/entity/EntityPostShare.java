@@ -16,7 +16,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -40,6 +40,5 @@ public class EntityPostShare {
     private User user;
 
     @Column(name = "shared_at", nullable = false)
-    private LocalDateTime sharedAt;
+    private Instant sharedAt;
 }
-

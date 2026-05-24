@@ -47,7 +47,12 @@ public class ServiceAdminAppFeedback {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
         Page<EntityAppFeedback> feedbacks = repositoryAppFeedback.findAll(pageable);
         List<DtoAppFeedback> content = feedbacks.stream()
-                .map(f -> mapperAppFeedback.toDto(f, null))
+                .map(f -> {
+                    String authorName = repositoryUser.findById(f.getCreatedBy())
+                            .map(User::getFullName)
+                            .orElse("Unknown");
+                    return mapperAppFeedback.toDto(f, null, authorName);
+                })
                 .toList();
         return toPageResponse(content, feedbacks);
     }
@@ -56,7 +61,12 @@ public class ServiceAdminAppFeedback {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
         Page<EntityAppFeedback> feedbacks = repositoryAppFeedback.findAllByStatus(status, pageable);
         List<DtoAppFeedback> content = feedbacks.stream()
-                .map(f -> mapperAppFeedback.toDto(f, null))
+                .map(f -> {
+                    String authorName = repositoryUser.findById(f.getCreatedBy())
+                            .map(User::getFullName)
+                            .orElse("Unknown");
+                    return mapperAppFeedback.toDto(f, null, authorName);
+                })
                 .toList();
         return toPageResponse(content, feedbacks);
     }
@@ -64,7 +74,10 @@ public class ServiceAdminAppFeedback {
     public DtoAppFeedback getById(Long id) {
         EntityAppFeedback feedback = repositoryAppFeedback.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(FEEDBACK_NOT_FOUND + id));
-        return mapperAppFeedback.toDto(feedback, null);
+        String authorName = repositoryUser.findById(feedback.getCreatedBy())
+                .map(User::getFullName)
+                .orElse("Unknown");
+        return mapperAppFeedback.toDto(feedback, null, authorName);
     }
 
     // -----------------------------------------------------------------------
@@ -74,7 +87,7 @@ public class ServiceAdminAppFeedback {
     public DtoAppFeedback create(AppFeedbackRequest request, Authentication connectedUser) {
         var admin = (User) connectedUser.getPrincipal();
         EntityAppFeedback feedback = mapperAppFeedback.toEntity(request);
-        return mapperAppFeedback.toDto(repositoryAppFeedback.save(feedback), admin.getId());
+        return mapperAppFeedback.toDto(repositoryAppFeedback.save(feedback), admin.getId(), admin.getFullName());
     }
 
     // -----------------------------------------------------------------------
@@ -111,7 +124,10 @@ public class ServiceAdminAppFeedback {
             );
         }
 
-        return mapperAppFeedback.toDto(repositoryAppFeedback.save(feedback), admin.getId());
+        String authorName = repositoryUser.findById(feedback.getCreatedBy())
+                .map(User::getFullName)
+                .orElse("Unknown");
+        return mapperAppFeedback.toDto(repositoryAppFeedback.save(feedback), admin.getId(), authorName);
     }
 
     // -----------------------------------------------------------------------
@@ -162,7 +178,10 @@ public class ServiceAdminAppFeedback {
                 )
         );
 
-        return mapperAppFeedback.toDto(repositoryAppFeedback.save(feedback), admin.getId());
+        String authorName = repositoryUser.findById(feedback.getCreatedBy())
+                .map(User::getFullName)
+                .orElse("Unknown");
+        return mapperAppFeedback.toDto(repositoryAppFeedback.save(feedback), admin.getId(), authorName);
     }
 
     /**
@@ -181,7 +200,11 @@ public class ServiceAdminAppFeedback {
         }
 
         comments.remove(index);
-        return mapperAppFeedback.toDto(repositoryAppFeedback.save(feedback), admin.getId());
+        
+        String authorName = repositoryUser.findById(feedback.getCreatedBy())
+                .map(User::getFullName)
+                .orElse("Unknown");
+        return mapperAppFeedback.toDto(repositoryAppFeedback.save(feedback), admin.getId(), authorName);
     }
 
     // -----------------------------------------------------------------------
@@ -201,4 +224,3 @@ public class ServiceAdminAppFeedback {
         );
     }
 }
-

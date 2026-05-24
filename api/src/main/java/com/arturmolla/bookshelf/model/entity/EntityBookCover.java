@@ -14,7 +14,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -46,6 +46,6 @@ public class EntityBookCover {
     private Long fileSize;
 
     @Column(name = "uploaded_at", nullable = false)
-    private LocalDateTime uploadedAt;
+    private Instant uploadedAt;
 }
 

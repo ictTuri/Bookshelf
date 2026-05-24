@@ -112,7 +112,10 @@
             @for (msg of messages; track msg.id) {
               <div class="message-item" [class.own]="msg.senderId !== friendId">
                 <div class="bubble-and-picker">
-                <div class="message-bubble">
+                <div class="message-bubble"
+                     (touchstart)="onTouchStart($event, msg.id)"
+                     (touchend)="onTouchEnd()"
+                     (touchmove)="onTouchMove()">
                   @if (msg.replyTo) {
                     <div class="reply-preview">
                       <span class="reply-sender">{{ msg.replyTo.senderName }}</span>
@@ -142,17 +145,70 @@
                       <i class="fas fa-check-double message-read-icon"></i>
                     }
                   </div>
-                  @if (getReactionEntries(msg.reactions).length > 0) {
-                    <div class="message-reactions">
-                      @for (entry of getReactionEntries(msg.reactions); track entry[0]) {
-                        <span class="reaction-pill">{{ entry[0] }}</span>
+                  <div class="message-reactions-container">
+                    @if (getReactionEntries(msg.reactions).length > 0) {
+                      <div class="message-reactions">
+                        @for (entry of getReactionEntries(msg.reactions); track entry[0]) {
+                          <span class="reaction-pill">{{ entry[0] }}</span>
+                        }
+                      </div>
+                    }
+                    <button class="add-reaction-inline"
+                            (click)="$event.stopPropagation(); toggleReactionPicker(msg.id)"
+                            (touchstart)="$event.stopPropagation()"
+                            (touchend)="$event.stopPropagation()"
+                            title="Add reaction">
+                      <i class="far fa-smile"></i>
+                    </button>
+                  </div>
+
+                  @if (mobileOptionsMessageId === msg.id) {
+                    <div class="mobile-message-options"
+                         [class.pos-above]="mobileOptionsPosition === 'above'"
+                         [class.pos-below]="mobileOptionsPosition === 'below'"
+                         (click)="$event.stopPropagation()"
+                         (touchstart)="$event.stopPropagation()"
+                         (touchend)="$event.stopPropagation()">
+                      
+                      @if (mobileShowReactions) {
+                        <div class="mobile-quick-reactions">
+                          <button (click)="mobileShowReactions = false" class="back-btn">
+                            <i class="fas fa-chevron-left"></i>
+                          </button>
+                          <button (click)="addQuickReaction('👍', msg.id)">👍</button>
+                          <button (click)="addQuickReaction('❤️', msg.id)">❤️</button>
+                          <button (click)="addQuickReaction('😂', msg.id)">😂</button>
+                          <button (click)="addQuickReaction('😮', msg.id)">😮</button>
+                          <button (click)="addQuickReaction('😢', msg.id)">😢</button>
+                          <button (click)="onMobileAction('react', msg)" class="plus-reaction-btn">
+                            <i class="fas fa-plus"></i>
+                          </button>
+                        </div>
+                      } @else {
+                        <div class="mobile-actions-compact-row">
+                          <button (click)="onMobileAction('reply', msg)" class="action-icon-btn" title="Reply">
+                            <i class="fas fa-reply"></i>
+                          </button>
+                          @if (msg.senderId !== friendId) {
+                            <button (click)="onMobileAction('edit', msg)" class="action-icon-btn" title="Edit">
+                              <i class="fas fa-pen"></i>
+                            </button>
+                            <button (click)="onMobileAction('delete', msg)" class="action-icon-btn delete-action" title="Delete">
+                              <i class="fas fa-trash-alt"></i>
+                            </button>
+                          }
+                        </div>
                       }
                     </div>
                   }
                   </div>
 
                   @if (showReactionPickerId === msg.id) {
-                  <div class="reaction-picker-container" (click)="$event.stopPropagation()">
+                  <div class="reaction-picker-container"
+                       [class.pos-below]="mobileOptionsPosition === 'below'"
+                       (click)="$event.stopPropagation()"
+                       (touchstart)="$event.stopPropagation()"
+                       (touchend)="$event.stopPropagation()">
                     @if (!showFullPicker) {
                       <div class="quick-reactions">
                         <button (click)="addQuickReaction('👍', msg.id)">👍</button>

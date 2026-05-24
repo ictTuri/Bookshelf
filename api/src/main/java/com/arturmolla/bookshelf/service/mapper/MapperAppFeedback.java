@@ -20,7 +20,7 @@ public class MapperAppFeedback {
                 .build();
     }
 
-    public DtoAppFeedback toDto(EntityAppFeedback entity, Long currentUserId) {
+    public DtoAppFeedback toDto(EntityAppFeedback entity, Long currentUserId, String authorName) {
         return DtoAppFeedback.builder()
                 .id(entity.getId())
                 .title(entity.getTitle())
@@ -31,7 +31,8 @@ public class MapperAppFeedback {
                 .ownFeedback(currentUserId != null && currentUserId.equals(entity.getCreatedBy()))
                 .age(entity.getAge())
                 .createdDate(entity.getCreatedDate())
-                .createdBy(entity.getCreatedBy())
+                .createdBy(authorName)
+                .creatorId(entity.getCreatedBy())
                 .comments(mapComments(entity))
                 .build();
     }
@@ -62,7 +63,8 @@ public class MapperAppFeedback {
                 .upvoteCount(entity.getUpvoteCount())
                 .age(entity.getAge())
                 .createdDate(entity.getCreatedDate())
-                .authorName(authorName)
+                .createdBy(authorName)
+                .creatorId(entity.getCreatedBy())
                 .comments(mapComments(entity))
                 .build();
     }

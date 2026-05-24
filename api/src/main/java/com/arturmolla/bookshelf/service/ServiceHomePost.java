@@ -35,6 +35,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -239,7 +240,7 @@ public class ServiceHomePost {
                     EntityPostLike like = EntityPostLike.builder()
                             .post(post)
                             .user(user)
-                            .createdAt(LocalDateTime.now())
+                            .createdAt(Instant.now())
                             .build();
                     repositoryPostLike.save(like);
                     log.info("Post id={} liked by userId={}", postId, user.getId());
@@ -396,7 +397,7 @@ public class ServiceHomePost {
         EntityPostShare share = EntityPostShare.builder()
                 .post(post)
                 .user(user)
-                .sharedAt(LocalDateTime.now())
+                .sharedAt(Instant.now())
                 .build();
         repositoryPostShare.save(share);
         log.info("Post id={} shared by userId={}", postId, user.getId());

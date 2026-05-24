@@ -193,11 +193,47 @@
                           @if ((commentsByPostId[post.id] || []).length > 0) {
                             @for (comment of commentsByPostId[post.id]; track comment.id) {
                               <div class="comment-item">
-                                <div class="comment-meta">
-                                  <span class="comment-author">{{ comment.authorName }}</span>
-                                  <span class="comment-time">{{ getTimeAgo(comment.createdDate) }}</span>
+                                <div class="comment-header">
+                                  <div class="comment-meta">
+                                    <span class="comment-author">{{ comment.authorName }}</span>
+                                    <span class="comment-time">{{ getTimeAgo(comment.createdDate) }}</span>
+                                  </div>
+                                  <div class="comment-actions">
+                                    @if (isCommentOwner(comment)) {
+                                      <button class="comment-action-btn edit" (click)="startEditComment(comment)" title="Edit comment">
+                                        <i class="fas fa-edit"></i>
+                                      </button>
+                                    }
+                                    @if (canDeleteComment(comment, post)) {
+                                      <button class="comment-action-btn delete" (click)="deleteComment(comment, post)" title="Delete comment">
+                                        <i class="fas fa-trash"></i>
+                                      </button>
+                                    }
+                                  </div>
                                 </div>
-                                <p class="comment-content">{{ comment.content }}</p>
+
+                                @if (editingCommentId === comment.id) {
+                                  <div class="edit-comment-form">
+                                    <textarea
+                                      rows="2"
+                                      [(ngModel)]="commentEditDraft"
+                                      placeholder="Edit your comment..."></textarea>
+                                    <div class="edit-actions">
+                                      <button class="cancel-edit-btn" (click)="cancelEditComment()">Cancel</button>
+                                      <button class="save-edit-btn"
+                                        [disabled]="!commentEditDraft.trim() || commentEditLoading"
+                                        (click)="saveEditComment(comment, post)">
+                                        @if (commentEditLoading) {
+                                          Saving...
+                                        } @else {
+                                          Save
+                                        }
+                                      </button>
+                                    </div>
+                                  </div>
+                                } @else {
+                                  <p class="comment-content">{{ comment.content }}</p>
+                                }
                               </div>
                             }
                           } @else {
@@ -368,3 +404,24 @@
     (closeModal)="closeStartStreamModal()"
     (streamStart)="onStreamStart($event)">
   </app-start-stream>
+
+  <!-- Delete Confirmation Modal -->
+  @if (showConfirmModal) {
+    <div class="confirm-modal-overlay" (click)="closeConfirmModal()">
+      <div class="confirm-modal-content" (click)="$event.stopPropagation()">
+        <div class="confirm-modal-header">
+          <div class="warning-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <h3>{{ confirmModalTitle }}</h3>
+        </div>
+        <div class="confirm-modal-body">
+          <p>{{ confirmModalMessage }}</p>
+        </div>
+        <div class="confirm-modal-footer">
+          <button class="confirm-btn-cancel" (click)="closeConfirmModal()">Cancel</button>
+          <button class="confirm-btn-delete" (click)="executeConfirmAction()">Delete</button>
+        </div>
+      </div>
+    </div>
+  }

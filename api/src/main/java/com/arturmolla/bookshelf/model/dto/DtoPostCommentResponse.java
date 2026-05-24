@@ -2,7 +2,7 @@ package com.arturmolla.bookshelf.model.dto;
 
 import lombok.Builder;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Builder
 public record DtoPostCommentResponse(
@@ -11,8 +11,8 @@ public record DtoPostCommentResponse(
         Long authorId,
         String authorName,
         String authorEmail,
-        LocalDateTime createdDate,
-        LocalDateTime lastModifiedDate
+        Instant createdDate,
+        Instant lastModifiedDate
 ) {
 }
 

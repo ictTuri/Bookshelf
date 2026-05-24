@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { AppFeedbackDto, AppFeedbackRequest, PublicFeedbackDto } from '../../interfaces/feedback.interface';
+import { AppFeedbackDto, AppFeedbackRequest, PublicFeedbackDto, FeedbackStatus } from '../../interfaces/feedback.interface';
 import { FeedbackService } from '../../service/feedback/feedback.service';
 import { PageResponse } from '../../interfaces/page.interface';
 import { AuthStateService } from '../../service/auth/auth-state.service';
@@ -21,6 +21,7 @@ export class FeedbackComponent implements OnInit {
   error = '';
   activeTab: 'all' | 'my' = 'all';
   sortBy = 'newest';
+  statusFilter: 'ALL' | FeedbackStatus = 'ALL';
 
   // Pagination
   currentPage = 0;
@@ -109,7 +110,12 @@ export class FeedbackComponent implements OnInit {
 
     call.subscribe({
       next: (response: PageResponse<AppFeedbackDto>) => {
-        this.feedbacks = response.content;
+        this.feedbacks = response.content.map(f => ({
+          ...f,
+          createdBy: f.createdBy || (f as any).authorName || (f as any).author || 'Community Member',
+          authorName: (f as any).authorName || f.createdBy || 'Community Member',
+          author: (f as any).author || null
+        }));
         this.totalPages = response.totalPages;
         this.isFirstPage = response.first;
         this.isLastPage = response.last;
@@ -130,21 +136,33 @@ export class FeedbackComponent implements OnInit {
   }
 
   applySort(): void {
-    const copy = [...this.feedbacks];
+    let filtered = [...this.feedbacks];
+
+    // Status Filter
+    if (this.statusFilter !== 'ALL') {
+      filtered = filtered.filter(f => f.status === this.statusFilter);
+    }
+
+    // Sort
     switch (this.sortBy) {
       case 'most-upvoted':
-        this.sortedFeedbacks = copy.sort((a, b) => b.upvoteCount - a.upvoteCount);
+        this.sortedFeedbacks = filtered.sort((a, b) => b.upvoteCount - a.upvoteCount);
         break;
       case 'most-comments':
-        this.sortedFeedbacks = copy.sort((a, b) => b.comments.length - a.comments.length);
+        this.sortedFeedbacks = filtered.sort((a, b) => b.comments.length - a.comments.length);
         break;
       default:
-        this.sortedFeedbacks = copy;
+        this.sortedFeedbacks = filtered;
     }
   }
 
   onSortChange(sort: string): void {
     this.sortBy = sort;
+    this.applySort();
+  }
+
+  onStatusFilterChange(status: 'ALL' | FeedbackStatus): void {
+    this.statusFilter = status;
     this.applySort();
   }
 
@@ -344,7 +362,7 @@ export class FeedbackComponent implements OnInit {
     return date.toLocaleDateString();
   }
 
-  private mapPublicToAppFeedback(publicFeedback: PublicFeedbackDto): AppFeedbackDto {
+  private mapPublicToAppFeedback(publicFeedback: any): AppFeedbackDto {
     return {
       id: publicFeedback.id,
       title: publicFeedback.title,
@@ -354,10 +372,14 @@ export class FeedbackComponent implements OnInit {
       upvotedByCurrentUser: false,
       ownFeedback: false,
       age: publicFeedback.age,
-      author: publicFeedback.authorName,
-      comments: publicFeedback.comments.map(comment => ({
-        authorId: 0, // Not available in public API
-        fullName: comment.authorName,
+      createdDate: publicFeedback.createdDate,
+      createdBy: publicFeedback.createdBy || publicFeedback.authorName || publicFeedback.author || 'Community Member',
+      authorName: publicFeedback.authorName || publicFeedback.createdBy || 'Community Member',
+      author: publicFeedback.author || null,
+      creatorId: publicFeedback.creatorId || 0,
+      comments: (publicFeedback.comments || []).map((comment: any) => ({
+        authorId: comment.authorId || 0,
+        authorName: comment.authorName || comment.fullName || 'Anonymous',
         message: comment.message,
         createdAt: comment.createdAt
       }))
