@@ -24,7 +24,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Iterator;
 
 @Service
@@ -81,7 +81,7 @@ public class ServiceFileStorage {
             cover.setContentType(contentType);
             cover.setFileName(file.getOriginalFilename());
             cover.setFileSize((long) bytes.length);
-            cover.setUploadedAt(LocalDateTime.now());
+            cover.setUploadedAt(Instant.now());
 
             repositoryBookCover.save(cover);
             log.info("Cover image saved to DB for bookId={}, final size={} bytes", bookId, bytes.length);
@@ -183,7 +183,7 @@ public class ServiceFileStorage {
             pic.setContentType(contentType);
             pic.setFileName(file.getOriginalFilename());
             pic.setFileSize((long) bytes.length);
-            pic.setUploadedAt(LocalDateTime.now());
+            pic.setUploadedAt(Instant.now());
 
             repositoryUserProfilePic.save(pic);
             log.info("Profile pic saved to DB for userId={}, final size={} bytes", userId, bytes.length);
@@ -250,7 +250,7 @@ public class ServiceFileStorage {
             wallpaper.setContentType(contentType);
             wallpaper.setFileName(file.getOriginalFilename());
             wallpaper.setFileSize((long) bytes.length);
-            wallpaper.setUploadedAt(LocalDateTime.now());
+            wallpaper.setUploadedAt(Instant.now());
 
             repositoryUserWallpaper.save(wallpaper);
             log.info("Wallpaper saved to DB for userId={}, final size={} bytes", userId, bytes.length);

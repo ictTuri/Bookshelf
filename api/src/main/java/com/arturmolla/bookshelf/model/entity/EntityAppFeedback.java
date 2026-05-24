@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -54,12 +54,12 @@ public class EntityAppFeedback extends EntityBase {
     }
 
     public String getAge() {
-        LocalDateTime createdAt = getCreatedDate();
+        Instant createdAt = getCreatedDate();
         if (createdAt == null) {
             return "unknown";
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         long seconds = java.time.Duration.between(createdAt, now).getSeconds();
 
         if (seconds < 60) return seconds + " second" + (seconds != 1 ? "s" : "") + " ago";

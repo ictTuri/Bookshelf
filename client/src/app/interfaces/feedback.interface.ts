@@ -2,7 +2,7 @@ export type FeedbackStatus = 'NEW' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
 
 export interface CommentDto {
   authorId: number;
-  fullName: string;
+  authorName: string;
   message: string;
   createdAt: string;
 }
@@ -14,6 +14,8 @@ export interface PublicCommentDto {
 }
 
 export interface AppFeedbackDto {
+  authorName: string;
+  author: any;
   id: number;
   title: string;
   description: string;
@@ -22,7 +24,9 @@ export interface AppFeedbackDto {
   upvotedByCurrentUser: boolean;
   ownFeedback: boolean;
   age: string;
-  author?: string;
+  createdDate: string;
+  createdBy: string;
+  creatorId: number;
   comments: CommentDto[];
 }
 
@@ -34,7 +38,7 @@ export interface PublicFeedbackDto {
   upvoteCount: number;
   age: string;
   createdDate: string;
-  authorName: string;
+  createdBy: string;
   comments: PublicCommentDto[];
 }
 

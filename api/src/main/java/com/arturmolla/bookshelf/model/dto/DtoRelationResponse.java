@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -29,6 +29,6 @@ public class DtoRelationResponse {
 
     private RelationType relationType;
     private RelationStatus status;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }
 

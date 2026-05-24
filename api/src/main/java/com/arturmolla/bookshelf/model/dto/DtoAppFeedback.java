@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -24,11 +24,8 @@ public class DtoAppFeedback {
     private boolean upvotedByCurrentUser;
     private boolean ownFeedback;
     private String age;
-    private LocalDateTime createdDate;
-    // Populated for authenticated views; null for public views
-    private Long createdBy;
-    // Populated for public views; null for authenticated views
-    private String authorName;
+    private Instant createdDate;
+    private String createdBy;
+    private Long creatorId;
     private List<DtoComment> comments;
 }
-
