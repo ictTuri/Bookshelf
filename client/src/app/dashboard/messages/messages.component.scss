@@ -378,6 +378,22 @@
     }
   }
 
+  &:not(.own) {
+    .mobile-message-options, .reaction-picker-container {
+      left: 0;
+      right: auto;
+      transform: none;
+    }
+  }
+  
+  &.own {
+    .mobile-message-options, .reaction-picker-container {
+      right: 0;
+      left: auto;
+      transform: none;
+    }
+  }
+
   &:hover .message-actions { 
     @media (min-width: 769px) {
       opacity: 1; 
@@ -407,6 +423,33 @@
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+
+  .reply-preview {
+    background: rgba(var(--accent-rgb), 0.05);
+    border-left: 3px solid var(--accent-color);
+    padding: 6px 10px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.82rem;
+    cursor: pointer;
+
+    .reply-sender {
+      font-weight: 700;
+      color: var(--accent-color);
+      font-size: 0.75rem;
+    }
+
+    .reply-snippet {
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+  }
 
   .message-media {
     margin: -4px -4px 8px -4px;
@@ -444,40 +487,39 @@
 
   .mobile-message-options {
     position: absolute;
-    background: rgba(0, 0, 0, 0.92);
-    backdrop-filter: blur(12px);
-    border-radius: 24px;
-    padding: 6px;
+    background: rgba(0, 0, 0, 0.94);
+    backdrop-filter: blur(16px);
+    border-radius: 20px;
+    padding: 4px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
     z-index: 1000;
     width: max-content;
-    min-width: unset;
-    max-width: calc(100vw - 40px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    max-width: calc(100vw - 32px);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.1);
 
     &.pos-above {
-      bottom: calc(100% + 6px);
+      bottom: calc(100% + 4px);
     }
 
     &.pos-below {
-      top: calc(100% + 6px);
+      top: calc(100% + 4px);
     }
 
     .mobile-quick-reactions {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 2px;
+      gap: 0;
       padding: 2px;
 
       button {
         background: transparent;
         border: none;
-        font-size: 1.5rem;
-        padding: 6px;
+        font-size: 1.4rem;
+        padding: 5px;
         transition: transform 0.2s;
         width: auto;
         display: flex;
@@ -487,22 +529,22 @@
         i { color: white; font-size: 1.1rem; }
 
         &.back-btn {
-          background: rgba(255, 255, 255, 0.15);
-          width: 30px;
-          height: 30px;
+          background: rgba(255, 255, 255, 0.12);
+          width: 28px;
+          height: 28px;
           border-radius: 50%;
           margin-right: 2px;
-          i { font-size: 0.75rem; }
+          i { font-size: 0.7rem; }
         }
 
         &.plus-reaction-btn {
-          background: rgba(255, 255, 255, 0.2);
-          width: 30px;
-          height: 30px;
+          background: rgba(255, 255, 255, 0.15);
+          width: 28px;
+          height: 28px;
           border-radius: 50%;
           margin-left: 2px;
-          i { font-size: 0.85rem; }
-          &:active { background: rgba(255, 255, 255, 0.35); }
+          i { font-size: 0.8rem; }
+          &:active { background: rgba(255, 255, 255, 0.3); }
         }
       }
     }
@@ -510,7 +552,7 @@
     .mobile-actions-compact-row {
       display: flex;
       flex-direction: row;
-      gap: 8px;
+      gap: 6px;
       justify-content: center;
       padding: 2px;
 
@@ -518,8 +560,8 @@
         background: rgba(255, 255, 255, 0.1);
         border: none;
         color: white;
-        width: 38px;
-        height: 38px;
+        width: 36px;
+        height: 36px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -527,11 +569,11 @@
         transition: all 0.2s;
 
         i {
-          font-size: 1rem;
+          font-size: 0.95rem;
         }
 
         &:active { 
-          background: rgba(255, 255, 255, 0.25);
+          background: rgba(255, 255, 255, 0.2);
           transform: scale(0.9);
         }
         
@@ -542,29 +584,18 @@
 
         &.delete-action {
           color: #ff4d4d;
-          background: rgba(255, 77, 77, 0.15);
-          &:active { background: rgba(255, 77, 77, 0.3); }
+          background: rgba(255, 77, 77, 0.1);
+          &:active { background: rgba(255, 77, 77, 0.25); }
         }
       }
     }
-  }
-
-  // Align menu to bubble edge with safety margin
-  .message-item:not(.own) .mobile-message-options {
-    left: 0;
-    transform: translateX(0);
-  }
-  .message-item.own .mobile-message-options {
-    right: 0;
-    transform: translateX(0);
   }
 }
 
 .reaction-picker-container {
   position: absolute;
   bottom: 100%;
-  left: 0;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   z-index: 1000;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
   border-radius: 12px;
@@ -580,7 +611,7 @@
   &.pos-below {
     bottom: auto;
     top: 100%;
-    margin-top: 8px;
+    margin-top: 4px;
     margin-bottom: 0;
   }
 
@@ -627,14 +658,14 @@
   }
 }
 
-.message-item.own {
-  .bubble-and-picker {
-    align-items: flex-end;
-  }
-  .reaction-picker-container {
-    left: auto;
-    right: 0;
-  }
+.message-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  align-self: center;
+  flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
@@ -646,16 +677,11 @@
       top: 100%;
     }
   }
-}
 
-.message-actions {
-  display: flex;
-  gap: 4px;
-  opacity: 0;
-  pointer-events: none;
-  transition: all 0.2s ease;
-  align-self: center;
-  flex-shrink: 0;
+  .message-item {
+    gap: 8px;
+    .bubble-and-picker { max-width: 85%; }
+  }
 }
 
 .message-action-btn {
@@ -678,16 +704,6 @@
     background: var(--accent-light);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  }
-}
-
-@media (max-width: 768px) {
-  .message-item {
-    gap: 8px;
-    
-    .bubble-and-picker {
-      max-width: 85%;
-    }
   }
 }
 
